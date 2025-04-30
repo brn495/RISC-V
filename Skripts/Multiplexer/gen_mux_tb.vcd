@@ -1,0 +1,129 @@
+$date
+  Tue Apr 29 11:37:01 2025
+$end
+$version
+  GHDL v0
+$end
+$timescale
+  1 fs
+$end
+$scope module standard $end
+$upscope $end
+$scope module textio $end
+$upscope $end
+$scope module std_logic_1164 $end
+$upscope $end
+$scope module numeric_std $end
+$upscope $end
+$scope module math_real $end
+$upscope $end
+$scope module constant_package $end
+$upscope $end
+$scope module gen_mux_tb $end
+$var reg 5 ! s_first5[4:0] $end
+$var reg 5 " s_second5[4:0] $end
+$var reg 6 # s_first6[5:0] $end
+$var reg 6 $ s_second6[5:0] $end
+$var reg 8 % s_first8[7:0] $end
+$var reg 8 & s_second8[7:0] $end
+$var reg 16 ' s_first16[15:0] $end
+$var reg 16 ( s_second16[15:0] $end
+$var reg 32 ) s_first32[31:0] $end
+$var reg 32 * s_second32[31:0] $end
+$var reg 5 + s_res5[4:0] $end
+$var reg 6 , s_res6[5:0] $end
+$var reg 8 - s_res8[7:0] $end
+$var reg 16 . s_res16[15:0] $end
+$var reg 32 / s_res32[31:0] $end
+$var reg 1 0 s_clk $end
+$var reg 1 1 s_sel $end
+$scope module dut1 $end
+$var reg 1 2 pi_sel $end
+$var reg 5 3 pi_first[4:0] $end
+$var reg 5 4 pi_second[4:0] $end
+$var reg 5 5 po_res[4:0] $end
+$upscope $end
+$scope module dut2 $end
+$var reg 1 6 pi_sel $end
+$var reg 6 7 pi_first[5:0] $end
+$var reg 6 8 pi_second[5:0] $end
+$var reg 6 9 po_res[5:0] $end
+$upscope $end
+$scope module dut3 $end
+$var reg 1 : pi_sel $end
+$var reg 8 ; pi_first[7:0] $end
+$var reg 8 < pi_second[7:0] $end
+$var reg 8 = po_res[7:0] $end
+$upscope $end
+$scope module dut4 $end
+$var reg 1 > pi_sel $end
+$var reg 16 ? pi_first[15:0] $end
+$var reg 16 @ pi_second[15:0] $end
+$var reg 16 A po_res[15:0] $end
+$upscope $end
+$scope module dut5 $end
+$var reg 1 B pi_sel $end
+$var reg 32 C pi_first[31:0] $end
+$var reg 32 D pi_second[31:0] $end
+$var reg 32 E po_res[31:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+b00011 !
+b11000 "
+b000111 #
+b111000 $
+b00001111 %
+b11110000 &
+b0000000011111111 '
+b1111111100000000 (
+b00000000000000001111111111111111 )
+b11111111111111110000000000000000 *
+b00011 +
+b000111 ,
+b00001111 -
+b0000000011111111 .
+b00000000000000001111111111111111 /
+U0
+01
+02
+b00011 3
+b11000 4
+b00011 5
+06
+b000111 7
+b111000 8
+b000111 9
+0:
+b00001111 ;
+b11110000 <
+b00001111 =
+0>
+b0000000011111111 ?
+b1111111100000000 @
+b0000000011111111 A
+0B
+b00000000000000001111111111111111 C
+b11111111111111110000000000000000 D
+b00000000000000001111111111111111 E
+#10000000
+#15000000
+b11000 +
+b111000 ,
+b11110000 -
+b1111111100000000 .
+b11111111111111110000000000000000 /
+11
+12
+b11000 5
+16
+b111000 9
+1:
+b11110000 =
+1>
+b1111111100000000 A
+1B
+b11111111111111110000000000000000 E
+#35000000
+#45000000
