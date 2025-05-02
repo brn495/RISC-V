@@ -37,7 +37,6 @@ architecture behavior of gen_mux_tb is
     signal s_res8           : std_logic_vector(DATA_WIDTH_GEN - 1 downto 0) := (others => '0');
     signal s_res16          : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_res32          : std_logic_vector(ADR_WIDTH - 1 downto 0) := (others => '0');
-    signal s_clk            : std_logic;
     signal s_sel            : std_logic;
 
     constant clock_period: time := 10 ns;
