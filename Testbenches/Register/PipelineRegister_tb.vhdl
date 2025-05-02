@@ -17,10 +17,10 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 use work.constant_package.all;
 
-entity Pipeline_Register_tb is
-end Pipeline_Register_tb;
+entity PipelineRegister_tb is
+end PipelineRegister_tb;
 
-architecture behavior of Pipeline_Register_tb is
+architecture behavior of PipelineRegister_tb is
 
     signal s_datain5 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
     signal s_dataout5 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
