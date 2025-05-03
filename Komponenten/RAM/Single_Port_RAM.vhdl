@@ -6,7 +6,7 @@ use work.constant_package.all;
 entity Single_Port_RAM is
     generic (
         word_width : integer := WORD_WIDTH;
-        address_width : integer := REG_ADR_WIDTH
+        address_width : integer := ADR_WIDTH
     );
     port (
         pi_clk : in std_logic;
