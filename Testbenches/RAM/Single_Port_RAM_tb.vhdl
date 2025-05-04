@@ -10,9 +10,9 @@ architecture behavior of Single_Port_RAM_tb is
     signal s_clk : std_logic := '0';
     signal s_rst : std_logic := '0'; -- Reset-Signal
     signal s_we : std_logic := '0';
-    signal s_add : std_logic_vector(ADR_WIDTH - 1 downto 0);
-    signal s_datain : std_logic_vector(WORD_WIDTH - 1 downto 0);
-    signal s_dataout : std_logic_vector(WORD_WIDTH - 1 downto 0);
+    signal s_add : std_logic_vector(16 - 1 downto 0);
+    signal s_datain : std_logic_vector(16 - 1 downto 0);
+    signal s_dataout : std_logic_vector(16 - 1 downto 0);
 
     -- Taktprozess fuer Simulation
     constant clk_period : time := 10 ns;
@@ -47,7 +47,7 @@ begin
 
         -- Test 2: Schreibe Wert 0xA5 an Adresse 0x2
         s_add <= "0000000000000010";
-        s_datain <= "000000010100101"; -- 0xA5
+        s_datain <= "0000000010100101"; -- 0xA5
         s_we <= '1';
         wait for clk_period;
         s_we <= '0';
@@ -75,7 +75,7 @@ begin
 
         -- Test 6: Lese von Adresse 0x2 erneut
         wait for clk_period;
-        assert s_dataout = "000000000001010101"
+        assert s_dataout = "0000000001010101"
         report "Fehler: Speicherinhalt an Adresse 0x2 sollte 0x55 sein!"
             severity error;
 
