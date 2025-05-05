@@ -14,7 +14,7 @@ architecture behavior of Single_Port_RAM_tb is
     signal s_datain : std_logic_vector(16 - 1 downto 0);
     signal s_dataout : std_logic_vector(16 - 1 downto 0);
 
-    -- Taktprozess fuer Simulation
+    -- Taktprozess für Simulation
     constant clk_period : time := 10 ns;
 begin
     clk_process : process
@@ -30,7 +30,7 @@ begin
         generic map(16, 16)
         port map(
             pi_clk => s_clk,
-            pi_rst => s_rst, -- Reset wird hier uebergeben
+            pi_rst => s_rst,
             pi_we => s_we,
             pi_add => s_add,
             pi_data => s_datain,
