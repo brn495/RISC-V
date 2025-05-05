@@ -10,7 +10,6 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 use work.constant_package.all;
-use work.types_package.all;
 
 entity register_file is
     generic (
@@ -30,6 +29,7 @@ entity register_file is
 end entity register_file;
 
 architecture behavior of register_file is
+    type registermemory is array (0 to reg_amount - 1) of std_logic_vector(word_width - 1 downto 0);
     signal reg_array : registermemory := (others => (others => '0'));
 begin
     process (pi_clk, pi_rst)

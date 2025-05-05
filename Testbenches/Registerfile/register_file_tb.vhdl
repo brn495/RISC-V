@@ -22,9 +22,9 @@ architecture behavior of register_file_tb is
     signal s_readRegAddr1 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
     signal s_readRegAddr2 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
     signal s_writeRegAddr : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-    signal s_writeRegData : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_readRegData1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_readRegData2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_writeRegData : std_logic_vector(16 - 1 downto 0) := (others => '0');
+    signal s_readRegData1 : std_logic_vector(16 - 1 downto 0) := (others => '0');
+    signal s_readRegData2 : std_logic_vector(16 - 1 downto 0) := (others => '0');
     signal s_writeRegData_32 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_readRegData1_32 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_readRegData2_32 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
@@ -80,7 +80,7 @@ begin
         -- Test 1: Versuchen die 0 Vektoren zu lesen
         s_readRegAddr1 <= "00001";
         s_readRegAddr2 <= "00010";
-        s_writeRegAddr <= "00100";
+        s_writeRegAddr <= "00011";
         s_writeRegData <= "0000000010100101";
         s_writeRegData_32 <= "00000000000000000000000010100101"; -- 0xA5
         wait for clk_period;
@@ -95,7 +95,7 @@ begin
         s_we <= '0';
 
         -- Test 2: Versuchen die geschriebenen 0x4 Adresse zu lesen
-        s_readRegAddr1 <= "00100";
+        s_readRegAddr1 <= "00011";
         wait for clk_period;
         assert (s_readRegData1 = "0000000010100101") report "Reading Out1 after writing not right" severity error;
         assert (s_readRegData2 = "0000000000000000") report "Reading Out2 after writing not right" severity error;
