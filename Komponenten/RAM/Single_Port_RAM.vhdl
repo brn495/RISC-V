@@ -17,21 +17,20 @@ entity Single_Port_RAM is
         po_data : out std_logic_vector(word_width - 1 downto 0) := (others => '0')
     );
 end entity Single_Port_RAM;
--- alles untere von Copilot abi
 architecture behaviour of Single_Port_RAM is
     type memory is array (0 to 2 ** address_width - 1) of std_logic_vector (word_width - 1 downto 0);
     signal regs : memory := (others => (others => '0'));
 begin
-    process (pi_clk, pi_rst)
+    process (pi_clk, pi_rst) -- RAM implementiert
     begin
-        if pi_rst = '1' then
+        if pi_rst = '1' then -- Reset
             regs <= (others => (others => '0'));
             po_data <= (others => '0');
-        elsif rising_edge(pi_clk) then
+        elsif rising_edge(pi_clk) then -- Writing
             if pi_we = '1' then
                 regs(to_integer(unsigned(pi_add))) <= pi_data;
             end if;
-            po_data <= regs(to_integer(unsigned(pi_add)));
+            po_data <= regs(to_integer(unsigned(pi_add))); -- Output
         end if;
     end process;
 end architecture behaviour;

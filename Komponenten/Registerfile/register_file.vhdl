@@ -32,16 +32,16 @@ architecture behavior of register_file is
     type registermemory is array (0 to reg_amount - 1) of std_logic_vector(word_width - 1 downto 0);
     signal reg_array : registermemory := (others => (others => '0'));
 begin
-    process (pi_clk, pi_rst)
+    process (pi_clk, pi_rst) -- Registerfile implementiert
     begin
-        if pi_rst = '1' then
+        if pi_rst = '1' then -- Reset
             po_readRegData1 <= (others => '0');
             po_readRegData2 <= (others => '0');
             reg_array <= (others => (others => '0'));
-        elsif rising_edge(pi_clk) then
+        elsif rising_edge(pi_clk) then -- Output
             po_readRegData1 <= reg_array(to_integer(unsigned(pi_readRegAddr1)));
             po_readRegData2 <= reg_array(to_integer(unsigned(pi_readRegAddr2)));
-            if pi_writeEnable = '1' then
+            if pi_writeEnable = '1' and to_integer(unsigned(pi_writeRegData)) /= 0 then -- Writing
                 reg_array(to_integer(unsigned(pi_writeRegAddr))) <= pi_writeRegData;
             end if;
         end if;
