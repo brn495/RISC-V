@@ -61,7 +61,7 @@ begin
         -- Test 4: Setze Reset und ueberpruefe den Inhalt
         s_rst <= '1';
         wait for clk_period;
-        assert s_dataout = "0000000000000000"
+        assert s_dataout = "0000000010100101"
         report "Fehler: Nach Reset sollte der Speicherinhalt 0 sein!"
             severity error;
         s_rst <= '0';

@@ -16,7 +16,7 @@ library IEEE;
   use ieee.std_logic_1164.all;
   use work.constant_package.all;
 
-package types_package is
+package type_packages is
 
   -- enum containig all instruction formats, used in decoder
   
@@ -24,4 +24,4 @@ package types_package is
 
   type registermemory is array (0 to 2 ** REG_ADR_WIDTH - 1) of std_logic_vector(WORD_WIDTH - 1 downto 0); -- used in register file
 
-end package types_package;
+end package type_packages;

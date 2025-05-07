@@ -42,7 +42,7 @@ begin
 
     -- Instanz des RAM-Moduls
     dut1 : entity work.register_file
-        generic map(16)
+        generic map(16, REG_ADR_WIDTH)
         port map(
             pi_clk => s_clk,
             pi_rst => s_rst, -- Reset wird hier uebergeben
@@ -56,7 +56,7 @@ begin
         );
 
     dut2 : entity work.register_file
-        generic map(32)
+        generic map(32, REG_ADR_WIDTH)
         port map(
             pi_clk => s_clk,
             pi_rst => s_rst, -- Reset wird hier uebergeben
@@ -76,7 +76,7 @@ begin
         s_rst <= '1';
         wait for clk_period;
         s_rst <= '0';
-
+        
         -- Test 1: Versuchen die 0 Vektoren zu lesen
         s_readRegAddr1 <= "00001";
         s_readRegAddr2 <= "00010";

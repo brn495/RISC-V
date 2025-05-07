@@ -25,7 +25,7 @@ begin
     begin
         if pi_rst = '1' then -- Reset
             regs <= (others => (others => '0'));
-            po_data <= (others => '0');
+            -- po_data <= (others => '0');
         elsif rising_edge(pi_clk) then -- Writing
             if pi_we = '1' then
                 regs(to_integer(unsigned(pi_add))) <= pi_data;
