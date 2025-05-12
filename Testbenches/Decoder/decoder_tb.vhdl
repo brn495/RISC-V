@@ -1,10 +1,3 @@
--- Laboratory RA solutions/versuch3
--- Sommersemester 25
--- Group Details
--- Lab Date:
--- 1. Participant First and Last Name: 
--- 2. Participant First and Last Name:
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -27,8 +20,7 @@ begin
     port map
     (
       pi_instruction => s_instruction,
-      po_controlWord => s_controlword,
-      pi_clk         => s_clk
+      po_controlWord => s_controlword
     );
 
   lu : process is
@@ -54,6 +46,7 @@ begin
 
     v_expectedControlWord.I_IMM_SEL := '0';
     v_expectedControlWord.ALU_OP    := ADD_ALU_OP;
+    v_expectedControlWord.REG_WRITE    := '1';
     s_clk <= '1';
     wait for PERIOD / 2;
     s_clk <= '0';
@@ -161,6 +154,7 @@ begin
 
     v_expectedControlWord.I_IMM_SEL := '0';
     v_expectedControlWord.ALU_OP    := "0000";
+    v_expectedControlWord.REG_WRITE := '0';
     s_clk <= '1';
     wait for PERIOD / 2;
     s_clk <= '0';
