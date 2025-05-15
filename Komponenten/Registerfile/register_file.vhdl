@@ -10,6 +10,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 use work.constant_package.all;
+use work.type_packages.all;
 
 entity register_file is
     generic (
@@ -24,15 +25,16 @@ entity register_file is
         pi_writeRegAddr : in std_logic_vector(adr_width - 1 downto 0) := (others => '0');
         pi_writeRegData : in std_logic_vector(word_width - 1 downto 0) := (others => '0');
         po_readRegData1 : out std_logic_vector(word_width - 1 downto 0) := (others => '0');
-        po_readRegData2 : out std_logic_vector(word_width - 1 downto 0) := (others => '0')
+        po_readRegData2 : out std_logic_vector(word_width - 1 downto 0) := (others => '0');
+        po_registerOut : out registermemory := (others => (others => '0'))
     );
 end entity register_file;
 
 architecture behavior of register_file is
 
-    type registermemory is array (0 to reg_amount - 1) of std_logic_vector(word_width - 1 downto 0);
+    -- type registermemory is array (0 to reg_amount - 1) of std_logic_vector(word_width - 1 downto 0);
     signal reg_array : registermemory := (others => (others => '0'));
-    
+
 begin
     process (pi_clk, pi_rst) -- Registerfile implementiert
     begin
@@ -43,6 +45,7 @@ begin
         elsif rising_edge(pi_clk) then -- Output
             po_readRegData1 <= reg_array(to_integer(unsigned(pi_readRegAddr1)));
             po_readRegData2 <= reg_array(to_integer(unsigned(pi_readRegAddr2)));
+            po_registerOut <= reg_array;
             if pi_writeEnable = '1' and to_integer(unsigned(pi_writeRegAddr)) /= 0 then -- Writing
                 reg_array(to_integer(unsigned(pi_writeRegAddr))) <= pi_writeRegData;
             end if;
