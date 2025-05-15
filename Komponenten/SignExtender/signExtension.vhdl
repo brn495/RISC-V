@@ -2,8 +2,8 @@
 -- Sommersemester 25
 -- Group Details
 -- Lab Date:
--- 1. Participant First and Last Name: 
--- 2. Participant First and Last Name:
+-- 1. Participant First and Last Name: Baran Ali Sönmez
+-- 2. Participant First and Last Name: Mashal Khan
 
 -- ========================================================================
 -- Description:  Sign extender for a RV32I processor. Takes the entire instruction
@@ -34,7 +34,7 @@ end entity signExtension;
 
 architecture arc of signExtension is
     -- begin solution:
-begin
+begin -- immediates rausholen und durch die resize Funktion an Ausgang in 32 bit ausgeben
     po_storeImm <= std_logic_vector(resize(signed(pi_instr(31 downto 25) & pi_instr(11 downto 7)), 32));
     po_immediateImm <= std_logic_vector(resize(signed(pi_instr(31 downto 20)), 32));
     po_unsignedImm <= std_logic_vector(resize(signed(pi_instr(31 downto 12) & x"000"), 32));

@@ -2,8 +2,8 @@
 -- Sommersemester 25
 -- Group Details
 -- Lab Date:
--- 1. Participant First and Last Name: 
--- 2. Participant First and Last Name:
+-- 1. Participant First and Last Name: Baran Ali Sönmez
+-- 2. Participant First and Last Name: Mashal Khan
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -26,16 +26,16 @@ architecture arc of decoder is
     -- begin solution:
 begin
     process (pi_instruction)
-        variable v_insFormat : t_instruction_type := nullFormat;
+        variable v_insFormat : t_instruction_type := nullFormat; -- Variable anlegen
     begin
-        case pi_instruction(6 downto 0) is
+        case pi_instruction(6 downto 0) is -- case um v_insFormat zu setzen
             when R_INS_OP =>
                 v_insFormat := rFormat;
             when others =>
                 v_insFormat := nullFormat;
         end case;
 
-        case v_insFormat is
+        case v_insFormat is -- case um output, controlWord zu bestimmen
             when rFormat =>
                 po_controlWord.ALU_OP <= pi_instruction(30) & pi_instruction(14 downto 12);
                 po_controlWord.I_IMM_SEL <= '0';

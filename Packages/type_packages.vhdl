@@ -2,8 +2,8 @@
 -- Sommersemester 25
 -- Group Details
 -- Lab Date:
--- 1. Participant First and Last Name: 
--- 2. Participant First and Last Name:
+-- 1. Participant First and Last Name: Baran Ali Sönmez
+-- 2. Participant First and Last Name: Mashal Khan
 
 -- ========================================================================
 -- Author:       Marcel Rieß
