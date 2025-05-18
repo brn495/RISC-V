@@ -56,6 +56,10 @@ architecture structure of r_only_RISC_V is
     signal s_instructionin_decoder : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_controlWordout_decoder : controlWord := control_word_init;
 
+    signal d : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal t : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+
     -- control word register 1-3 signals
     signal s_controlWordin_controlWordRegister1 : controlWord := control_word_init;
     signal s_controlWordout_controlWordRegister1 : controlWord := control_word_init;
@@ -78,7 +82,7 @@ architecture structure of r_only_RISC_V is
 
     -- register file signals
     signal s_writeEnable_registerfile_in : std_logic := '0';
-    signal s_writeRegData_registerfile_in : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s_writeRegData_registerfile_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_readRegAddr1_registerfile_in : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
     signal s_readRegAddr2_registerfile_in : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
     signal s_writeRegAddr_registerfile_in : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
@@ -102,8 +106,8 @@ architecture structure of r_only_RISC_V is
     signal s_ex_mem_res_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- mem_web_res signals
-    signal mem_web_res_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal mem_web_res_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_mem_web_res_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_mem_web_res_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- end solution!!
 begin
@@ -124,7 +128,7 @@ begin
             po_CARRY_OUT => open
         );
 
-    PipelineRegister1_inst : entity work.PipelineRegister1
+    PC : entity work.PipelineRegister1
         generic map(
             registerWidth => WORD_WIDTH
         )
@@ -150,11 +154,13 @@ begin
         )
         port map(
             pi_adr => s_addrin_instruction_cache,
-            pi_clk => pi_clk,
+            pi_clk => not pi_clk,
             pi_rst => pi_rst,
             pi_instructionCache => pi_instruction,
             po_instruction => s_instruction_out_pc
         );
+
+    s_addrin_instruction_cache <= s_dataout_pc;
     -- end solution!!
 
     ---********************************************************************
@@ -162,12 +168,38 @@ begin
     ---********************************************************************
 
     -- begin solution:
+    gen_register : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_datain_gen_reg,
+            po_data => s_dataout_genreg
+        );
+
+    s_datain_gen_reg <= s_instruction_out_pc;
     -- end solution!!
 
     ---********************************************************************
     ---* decode phase
     ---********************************************************************
     -- begin solution:
+    d <= s_dataout_genreg(11 downto 7);
+    s <= s_dataout_genreg(19 downto 15);
+    t <= s_dataout_genreg(24 downto 20);
+
+    decoder : entity work.decoder
+        generic map(
+            word_width => WORD_WIDTH
+        )
+        port map(
+            pi_instruction => s_instructionin_decoder,
+            po_controlWord => s_controlWordout_decoder
+        );
+
+    s_instructionin_decoder <= s_dataout_genreg;
     -- end solution!!
 
     ---********************************************************************
@@ -195,6 +227,31 @@ begin
             pi_data1 => s_datain_idExOp2,
             po_data => s_dataout_idExOp2
         );
+
+    ControlWordRegister1 : entity work.ControlWordRegister
+        port map(
+            pi_rst => pi_rst,
+            pi_clk => pi_clk,
+            pi_controlWord => s_controlWordin_controlWordRegister1,
+            po_controlWord => s_controlWordout_controlWordRegister1
+        );
+
+    gen_reg1 : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_datain_gen_reg1,
+            po_data => s_dataout_genreg1
+        );
+
+    s_controlWordin_controlWordRegister1 <= s_controlWordout_decoder;
+    s_datain_gen_reg1 <= d;
+    s_datain_idExOp1 <= s_op1_registerfile_out;
+    s_datain_idExOp2 <= s_op2_registerfile_out;
+
     -- end solution!!
 
     ---********************************************************************
@@ -210,28 +267,102 @@ begin
             po_aluOut => s_aluout,
             po_carryOut => open
         );
+
+    s_op1in_alu <= s_datain_idExOp1;
+    s_op2in_alu <= s_datain_idExOp2;
+    s_aluOp <= s_controlWordout_controlWordRegister1.ALU_OP;
     -- end solution!!
 
     ---********************************************************************
     ---* Pipeline-Register (EX -> MEM) 
     ---********************************************************************
     -- begin solution:
+    ControlWordRegister2 : entity work.ControlWordRegister
+        port map(
+            pi_rst => pi_rst,
+            pi_clk => pi_clk,
+            pi_controlWord => s_controlWordin_controlWordRegister2,
+            po_controlWord => s_controlWordout_controlWordRegister2
+        );
+
+    gen_reg2 : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_datain_gen_reg2,
+            po_data => s_dataout_genreg2
+        );
+
+    s_controlWordin_controlWordRegister2 <= s_controlWordout_controlWordRegister1;
+    s_datain_gen_reg2 <= s_dataout_genreg1;
+
+    ex_mem_res : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_ex_mem_res_in,
+            po_data => s_ex_mem_res_out
+        );
+
+    s_ex_mem_res_in <= s_aluout;
     -- end solution!!
 
     ---********************************************************************
     ---* memory phase
     ---********************************************************************
+    -- begin solution:
+    -- end solution!!
 
     ---********************************************************************
     ---* Pipeline-Register (MEM -> WB) 
     ---********************************************************************
     -- begin solution:
+    ControlWordRegister3 : entity work.ControlWordRegister
+        port map(
+            pi_rst => pi_rst,
+            pi_clk => pi_clk,
+            pi_controlWord => s_controlWordin_controlWordRegister3,
+            po_controlWord => s_controlWordout_controlWordRegister3
+        );
+
+    gen_reg3 : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_datain_gen_reg3,
+            po_data => s_dataout_genreg3
+        );
+
+    s_controlWordin_controlWordRegister3 <= s_controlWordout_controlWordRegister2;
+    s_datain_gen_reg3 <= s_dataout_genreg2;
+
+    mem_wb_res : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_mem_web_res_in,
+            po_data => s_mem_web_res_out
+        );
+
+    s_mem_web_res_in <= s_ex_mem_res_out;
     -- end solution!!
 
     ---********************************************************************
     ---* write back phase
     ---********************************************************************
-
+    s_writeRegAddr_registerfile_in <= s_dataout_genreg3;
     ---********************************************************************
     ---* register file (negative clock)
     ---********************************************************************
@@ -245,9 +376,15 @@ begin
             pi_readRegAddr2 => s_readRegAddr2_registerfile_in,
             pi_writeRegAddr => s_writeRegAddr_registerfile_in,
             pi_writeRegData => s_writeRegData_registerfile_in,
-            po_readRegData1 => s_datain_op1,
-            po_readRegData2 => s_datain_op2
+            po_readRegData1 => s_op1_registerfile_out,
+            po_readRegData2 => s_op2_registerfile_out,
+            po_registerOut => po_registersOut
         );
+
+    s_writeRegData_registerfile_in <= s_mem_web_res_out;
+    s_readRegAddr1_registerfile_in <= s;
+    s_readRegAddr2_registerfile_in <= t;
+    s_writeEnable_registerfile_in <= s_controlWordout_controlWordRegister3.REG_WRITE;
     -- end solution!!
     ---********************************************************************
     ---********************************************************************

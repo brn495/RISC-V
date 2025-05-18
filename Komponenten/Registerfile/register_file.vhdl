@@ -10,7 +10,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 use work.constant_package.all;
-use work.type_packages.all;
+use work.types.all;
 
 entity register_file is
     generic (
@@ -26,14 +26,14 @@ entity register_file is
         pi_writeRegData : in std_logic_vector(word_width - 1 downto 0) := (others => '0');
         po_readRegData1 : out std_logic_vector(word_width - 1 downto 0) := (others => '0');
         po_readRegData2 : out std_logic_vector(word_width - 1 downto 0) := (others => '0');
-        po_registerOut : out registermemory := (others => (others => '0'))
+        po_registerOut : out registerMemory := (others => (others => '0'))
     );
 end entity register_file;
 
 architecture behavior of register_file is
 
     -- type registermemory is array (0 to reg_amount - 1) of std_logic_vector(word_width - 1 downto 0);
-    signal reg_array : registermemory := (others => (others => '0'));
+    signal reg_array : registerMemory := (others => (others => '0'));
 
 begin
     process (pi_clk, pi_rst) -- Registerfile implementiert

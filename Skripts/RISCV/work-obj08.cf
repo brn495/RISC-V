@@ -1,0 +1,64 @@
+v 4
+file . "../../Testbenches/RISCV/R_only_RISC_V_tb.vhdl" "b1388373bc2439a9b09f6fe94eea50ddbcb21809" "20250518191547.855":
+  entity r_only_risc_v_tb at 16( 498) + 0 on 50;
+  architecture structure of r_only_risc_v_tb at 25( 684) + 0 on 51;
+file . "../../Komponenten/Register/controlwordregister.vhdl" "7696b1f8f830bce8fc6052e5b815635925cf0150" "20250518191547.842":
+  entity controlwordregister at 15( 567) + 0 on 46;
+  architecture arc1 of controlwordregister at 32( 1003) + 0 on 47;
+file . "../../Komponenten/Decoder/decoder.vhdl" "4656ee8c23676fc629df64549e248e6c3393a7d3" "20250518191547.833":
+  entity decoder at 8( 196) + 0 on 42;
+  architecture arc of decoder at 25( 634) + 0 on 43;
+file . "../../Komponenten/Multiplexer/gen_mux.vhdl" "042ac73e8598af16063c1ff9ca1ee608cc20cbfa" "20250518191547.824":
+  entity gen_mux at 14( 471) + 0 on 38;
+  architecture dataflow of gen_mux at 31( 881) + 0 on 39;
+file . "../../Komponenten/Registerfile/register_file.vhdl" "bde2c0c2ea49efa0f664320f47202b74fba860b1" "20250518191547.817":
+  entity register_file at 8( 207) + 0 on 34;
+  architecture behavior of register_file at 33( 1265) + 0 on 35;
+file . "../../Komponenten/ALU/my_alu.vhdl" "9b29a40a2c73ebc39a4ac8c9b91bc7b13aa96dd5" "20250518191547.810":
+  entity my_alu at 14( 464) + 0 on 30;
+  architecture behavior of my_alu at 35( 1015) + 0 on 31;
+file . "../../Komponenten/ALU/my_gen_n_bit_full_adder.vhdl" "837db3fca74e00318e2ea1fe97fa36c15163e3d6" "20250518191547.800":
+  entity my_gen_n_bit_full_adder at 16( 352) + 0 on 26;
+  architecture structure of my_gen_n_bit_full_adder at 35( 887) + 0 on 27;
+file . "../../Komponenten/ALU/my_half_adder.vhdl" "84fa20a4f9448c9688654719347ee3c4c0ac5f9d" "20250518191547.794":
+  entity my_half_adder at 16( 352) + 0 on 22;
+  architecture dataflow of my_half_adder at 36( 923) + 0 on 23;
+file . "../../Komponenten/ALU/my_gen_and.vhdl" "2f11f7362df068e7220d4f27aa6685e5470fb55f" "20250518191547.788":
+  entity my_gen_and at 16( 354) + 0 on 18;
+  architecture behavior of my_gen_and at 31( 771) + 0 on 19;
+file . "../../Packages/Util_Asm_Package.vhdl" "abf7ae1a15614f512a1903fa2dbb28025428f5d7" "20250518191547.781":
+  package util_asm_package at 15( 521) + 0 on 14 body;
+  package body util_asm_package at 30( 918) + 0 on 15;
+file . "../../Packages/type_packages.vhdl" "bce8ff2ddd3b9b6b5e29f7de51187f8b5fffa2b1" "20250518191547.771":
+  package type_packages at 15( 542) + 0 on 12;
+file . "../../Packages/constant_package.vhdl" "8ec8057effc8dd1897b49a34101d3de572785e1b" "20250518191547.768":
+  package constant_package at 15( 547) + 0 on 11;
+file . "../../Packages/types.vhdl" "da1cd86afc887701b46e49b4af4f41d954c626ab" "20250518191547.775":
+  package types at 8( 346) + 0 on 13;
+file . "../../Komponenten/ALU/my_gen_or.vhdl" "66d7d22662d77b29676d2bf002d08b6c37e53449" "20250518191547.785":
+  entity my_gen_or at 16( 354) + 0 on 16;
+  architecture behavior of my_gen_or at 31( 769) + 0 on 17;
+file . "../../Komponenten/ALU/my_gen_xor.vhdl" "894a581e00a9647daa360005fdee4f88f6eaaa0c" "20250518191547.791":
+  entity my_gen_xor at 16( 354) + 0 on 20;
+  architecture behavior of my_gen_xor at 31( 747) + 0 on 21;
+file . "../../Komponenten/ALU/my_full_adder.vhdl" "3ffd257985cf09fe3811383cf3e18c7a8023a136" "20250518191547.797":
+  entity my_full_adder at 16( 352) + 0 on 24;
+  architecture structure of my_full_adder at 32( 694) + 0 on 25;
+file . "../../Komponenten/ALU/my_shifter.vhdl" "4d71401d6b058773fe65d792c5e94a1b5af62db1" "20250518191547.805":
+  entity my_shifter at 16( 352) + 0 on 28;
+  architecture behavior of my_shifter at 35( 845) + 0 on 29;
+file . "../../Komponenten/Register/PipelineRegister1.vhdl" "5567e6dedabcfe94737262baa7f73a9d3c5e073e" "20250518191547.813":
+  entity pipelineregister1 at 14( 477) + 0 on 32;
+  architecture behaviour of pipelineregister1 at 30( 924) + 0 on 33;
+file . "../../Komponenten/RAM/Single_Port_RAM.vhdl" "38d8df06f2666c946c670fffbe7ea85f51fa0174" "20250518191547.821":
+  entity single_port_ram at 1( 0) + 0 on 36;
+  architecture behaviour of single_port_ram at 20( 633) + 0 on 37;
+file . "../../Komponenten/SignExtender/signExtension.vhdl" "348e39f0b5f613eab2ff5977749ed887f3697fc6" "20250518191547.829":
+  entity signextension at 14( 582) + 0 on 40;
+  architecture arc of signextension at 35( 1277) + 0 on 41;
+file . "../../Komponenten/Cache/instruction_cache.vhdl" "a7833fecebcac1f75127b6bb7dd4934ede9d9fe5" "20250518191547.837":
+  entity instruction_cache at 15( 504) + 0 on 44;
+  architecture behavior of instruction_cache at 35( 1273) + 0 on 45;
+file . "../../RISCV/R_only_RISC_V.vhdl" "f97045845ab11a16c5922572a93bb8e925672dc2" "20250518191547.849":
+  entity r_only_risc_v at 15( 503) + 0 on 48;
+  architecture structure of r_only_risc_v at 30( 898) + 0 on 49;
