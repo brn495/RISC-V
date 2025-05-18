@@ -13,15 +13,15 @@
 -- ========================================================================
 
 library IEEE;
-  use ieee.std_logic_1164.all;
-  use work.constant_package.all;
+use ieee.std_logic_1164.all;
+use work.constant_package.all;
 
 package type_packages is
 
-  -- enum containig all instruction formats, used in decoder
-  
-  type memory is array (0 to 2 ** 10 - 1) of std_logic_vector(WORD_WIDTH - 1 downto 0); -- Used for instruction cache
+    -- enum containig all instruction formats, used in decoder
 
-  type registermemory is array (0 to 2 ** REG_ADR_WIDTH - 1) of std_logic_vector(WORD_WIDTH - 1 downto 0); -- used in register file
+    type memory is array (0 to 2 ** 10 - 1) of std_logic_vector(WORD_WIDTH - 1 downto 0); -- Used for instruction cache
+
+    -- type registermemory is array (0 to 2 ** REG_ADR_WIDTH - 1) of std_logic_vector(WORD_WIDTH - 1 downto 0); -- used in register file
 
 end package type_packages;
