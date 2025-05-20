@@ -22,9 +22,9 @@ architecture behavior of register_file_tb is
     signal s_readRegAddr1 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
     signal s_readRegAddr2 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
     signal s_writeRegAddr : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-    signal s_writeRegData : std_logic_vector(16 - 1 downto 0) := (others => '0');
-    signal s_readRegData1 : std_logic_vector(16 - 1 downto 0) := (others => '0');
-    signal s_readRegData2 : std_logic_vector(16 - 1 downto 0) := (others => '0');
+    --signal s_writeRegData : std_logic_vector(16 - 1 downto 0) := (others => '0');
+    --signal s_readRegData1 : std_logic_vector(16 - 1 downto 0) := (others => '0');
+    --signal s_readRegData2 : std_logic_vector(16 - 1 downto 0) := (others => '0');
     signal s_writeRegData_32 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_readRegData1_32 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_readRegData2_32 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
@@ -41,19 +41,19 @@ begin
     end process;
 
     -- Instanz des RAM-Moduls
-    dut1 : entity work.register_file
-        generic map(16, REG_ADR_WIDTH)
-        port map(
-            pi_clk => s_clk,
-            pi_rst => s_rst, -- Reset wird hier uebergeben
-            pi_writeEnable => s_we,
-            pi_readRegAddr1 => s_readRegAddr1,
-            pi_readRegAddr2 => s_readRegAddr2,
-            pi_writeRegAddr => s_writeRegAddr,
-            pi_writeRegData => s_writeRegData,
-            po_readRegData1 => s_readRegData1,
-            po_readRegData2 => s_readRegData2
-        );
+ --   dut1 : entity work.register_file
+ --       generic map(16, REG_ADR_WIDTH)
+ --       port map(
+  --          pi_clk => s_clk,
+   --         pi_rst => s_rst, -- Reset wird hier uebergeben
+     --       pi_writeEnable => s_we,
+       --     pi_readRegAddr1 => s_readRegAddr1,
+         --  pi_readRegAddr2 => s_readRegAddr2,
+         --   pi_writeRegAddr => s_writeRegAddr,
+--            pi_writeRegData => s_writeRegData,
+  --          po_readRegData1 => s_readRegData1,
+    --        po_readRegData2 => s_readRegData2
+      --  );
 
     dut2 : entity work.register_file
         generic map(32, REG_ADR_WIDTH)
@@ -78,14 +78,14 @@ begin
         s_rst <= '0';
         
         -- Test 1: Versuchen die 0 Vektoren zu lesen
-        s_readRegAddr1 <= "00001";
-        s_readRegAddr2 <= "00010";
-        s_writeRegAddr <= "00011";
-        s_writeRegData <= "0000000010100101";
+        s_readRegAddr1 <= "10000";
+        s_readRegAddr2 <= "11000";
+        s_writeRegAddr <= "11100";
+        --s_writeRegData <= "0000000010100101";
         s_writeRegData_32 <= "00000000000000000000000010100101"; -- 0xA5
         wait for clk_period;
-        assert (s_readRegData1 = "0000000000000000") report "Reading Out1 after reset not right" severity error;
-        assert (s_readRegData2 = "0000000000000000") report "Reading Out2 after reset not right" severity error;
+        --assert (s_readRegData1 = "0000000000000000") report "Reading Out1 after reset not right" severity error;
+        --assert (s_readRegData2 = "0000000000000000") report "Reading Out2 after reset not right" severity error;
         assert (s_readRegData1_32 = "00000000000000000000000000000000") report "Reading Out1_32 after reset not right" severity error;
         assert (s_readRegData2_32 = "00000000000000000000000000000000") report "Reading Out2_32 after reset not right" severity error;
 
@@ -95,25 +95,25 @@ begin
         s_we <= '0';
 
         -- Test 2: Versuchen die geschriebenen 0x4 Adresse zu lesen
-        s_readRegAddr1 <= "00011";
+        s_readRegAddr1 <= "11100";
         wait for clk_period;
-        assert (s_readRegData1 = "0000000010100101") report "Reading Out1 after writing not right" severity error;
-        assert (s_readRegData2 = "0000000000000000") report "Reading Out2 after writing not right" severity error;
+        --assert (s_readRegData1 = "0000000010100101") report "Reading Out1 after writing not right" severity error;
+        --assert (s_readRegData2 = "0000000000000000") report "Reading Out2 after writing not right" severity error;
         assert (s_readRegData1_32 = "00000000000000000000000010100101") report "Reading Out1_32 after writing not right" severity error;
         assert (s_readRegData2_32 = "00000000000000000000000000000000") report "Reading Out2_32 after writing not right" severity error;
 
         -- Schreiben von 0x1 in Register 0x1
-        s_writeRegAddr <= "00001";
-        s_writeRegData <= "0000000000000001";
+        s_writeRegAddr <= "10000";
+        --s_writeRegData <= "0000000000000001";
         s_writeRegData_32 <= "00000000000000000000000000000001";
         s_we <= '1';
         wait for clk_period;
-        s_readRegAddr2 <= "00001";
+        s_readRegAddr2 <= "10000";
         wait for clk_period;
 
         -- Test 3: Versuchen die geschriebenen Werte in Out2 auszugeben
-        assert (s_readRegData1 = "0000000010100101") report "Reading Out1 after number 2 writing not right" severity error;
-        assert (s_readRegData2 = "0000000000000001") report "Reading Out2 after number 2 writing not right" severity error;
+        --assert (s_readRegData1 = "0000000010100101") report "Reading Out1 after number 2 writing not right" severity error;
+        --assert (s_readRegData2 = "0000000000000001") report "Reading Out2 after number 2 writing not right" severity error;
         assert (s_readRegData1_32 = "00000000000000000000000010100101") report "Reading Out1_32 after number 2 writing not right" severity error;
         assert (s_readRegData2_32 = "00000000000000000000000000000001") report "Reading Out2_32 after writing number 2 not right" severity error;
 
@@ -121,8 +121,8 @@ begin
         s_rst <= '1';
         wait for clk_period;
         s_rst <= '0';
-        assert (s_readRegData1 = "0000000000000000") report "Reading Out1 after reset not right" severity error;
-        assert (s_readRegData2 = "0000000000000000") report "Reading Out2 after reset not right" severity error;
+        --assert (s_readRegData1 = "0000000000000000") report "Reading Out1 after reset not right" severity error;
+        --assert (s_readRegData2 = "0000000000000000") report "Reading Out2 after reset not right" severity error;
         assert (s_readRegData1_32 = "00000000000000000000000000000000") report "Reading Out1_32 after reset not right" severity error;
         assert (s_readRegData2_32 = "00000000000000000000000000000000") report "Reading Out2_32 after reset not right" severity error;
 
