@@ -36,7 +36,6 @@ architecture structure of r_only_RISC_V is
 
     -- n_bit_full_adder signals
     signal s_carry_in_full_adder : std_logic := '0';
-    signal s_a_in_full_adder : std_logic_vector(WORD_WIDTH - 1 downto 0) := x"00000004";
     signal s_b_in_full_adder : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_p_sum_out_full_adder : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
@@ -121,7 +120,7 @@ begin
             G_DATA_WIDTH => WORD_WIDTH
         )
         port map(
-            pi_A => s_a_in_full_adder,
+            pi_A => ADD_FOUR_TO_ADDRESS,
             pi_B => s_b_in_full_adder,
             pi_CARRY_IN => s_carry_in_full_adder,
             po_SUM => s_p_sum_out_full_adder,
