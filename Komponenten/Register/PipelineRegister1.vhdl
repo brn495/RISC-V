@@ -20,10 +20,10 @@ entity PipelineRegister1 is
         registerWidth : integer := 8
     );
     port (
-        pi_clk : in std_logic; -- Clock
-        pi_rst : in std_logic; -- Reset
-        pi_data1 : in std_logic_vector(registerWidth - 1 downto 0); -- Eingang
-        po_data : out std_logic_vector(registerWidth - 1 downto 0) -- Ausgang
+        pi_clk : in std_logic := '0'; -- Clock
+        pi_rst : in std_logic := '0'; -- Reset
+        pi_data1 : in std_logic_vector(registerWidth - 1 downto 0) := (others => '0'); -- Eingang
+        po_data : out std_logic_vector(registerWidth - 1 downto 0) := (others => '0') -- Ausgang
     );
 end entity PipelineRegister1;
 

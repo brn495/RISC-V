@@ -33,7 +33,10 @@ end entity register_file;
 architecture behavior of register_file is
 
     -- type registermemory is array (0 to reg_amount - 1) of std_logic_vector(word_width - 1 downto 0);
-    signal reg_array : registerMemory := (others => (others => '0'));
+    signal reg_array : registerMemory := (
+        1 => std_logic_vector(to_unsigned(9, WORD_WIDTH)), -- x1 = 9
+        2 => std_logic_vector(to_unsigned(8, WORD_WIDTH)), -- x2 = 8
+        others => (others => '0'));
 
 begin
     process (pi_clk, pi_rst) -- Registerfile implementiert
@@ -42,6 +45,8 @@ begin
             po_readRegData1 <= (others => '0');
             po_readRegData2 <= (others => '0');
             reg_array <= (others => (others => '0'));
+            reg_array(1) <= std_logic_vector(to_unsigned(9, WORD_WIDTH));
+            reg_array(2) <= std_logic_vector(to_unsigned(8, WORD_WIDTH));
         elsif rising_edge(pi_clk) then -- Output
             po_readRegData1 <= reg_array(to_integer(unsigned(pi_readRegAddr1)));
             po_readRegData2 <= reg_array(to_integer(unsigned(pi_readRegAddr2)));
