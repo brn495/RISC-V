@@ -42,18 +42,14 @@ begin
     process (pi_clk, pi_rst) -- Registerfile implementiert
     begin
         if pi_rst = '1' then -- Reset
-            po_readRegData1 <= (others => '0');
-            po_readRegData2 <= (others => '0');
             reg_array <= (others => (others => '0'));
-            reg_array(1) <= std_logic_vector(to_unsigned(9, WORD_WIDTH));
-            reg_array(2) <= std_logic_vector(to_unsigned(8, WORD_WIDTH));
         elsif rising_edge(pi_clk) then -- Output
-            po_readRegData1 <= reg_array(to_integer(unsigned(pi_readRegAddr1)));
-            po_readRegData2 <= reg_array(to_integer(unsigned(pi_readRegAddr2)));
-            po_registerOut <= reg_array;
             if pi_writeEnable = '1' and to_integer(unsigned(pi_writeRegAddr)) /= 0 then -- Writing
                 reg_array(to_integer(unsigned(pi_writeRegAddr))) <= pi_writeRegData;
             end if;
         end if;
     end process;
+    po_readRegData1 <= reg_array(to_integer(unsigned(pi_readRegAddr1)));
+    po_readRegData2 <= reg_array(to_integer(unsigned(pi_readRegAddr2)));
+    po_registerOut <= reg_array;
 end architecture behavior;

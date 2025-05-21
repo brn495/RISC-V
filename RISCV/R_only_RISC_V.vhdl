@@ -121,7 +121,7 @@ begin
         )
         port map(
             pi_A => ADD_FOUR_TO_ADDRESS,
-            pi_B => s_b_in_full_adder,
+            pi_B => s_dataout_pc,
             pi_CARRY_IN => s_carry_in_full_adder,
             po_SUM => s_p_sum_out_full_adder,
             po_CARRY_OUT => open
@@ -134,12 +134,10 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_datain_pc,
+            pi_data1 => s_p_sum_out_full_adder,
             po_data => s_dataout_pc
         );
 
-    s_b_in_full_adder <= s_dataout_pc;
-    s_datain_pc <= s_p_sum_out_full_adder;
 
     -- end solution!!
 
@@ -152,14 +150,13 @@ begin
             adr_width => WORD_WIDTH
         )
         port map(
-            pi_adr => s_addrin_instruction_cache,
+            pi_adr => s_dataout_pc,
             pi_clk => not pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => open,
             pi_instructionCache => pi_instruction,
             po_instruction => s_instruction_out_pc
         );
 
-    s_addrin_instruction_cache <= s_dataout_pc;
     -- end solution!!
 
     ---********************************************************************
@@ -174,11 +171,11 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_datain_gen_reg,
+            pi_data1 => s_instruction_out_pc,
             po_data => s_dataout_genreg
         );
 
-    s_datain_gen_reg <= s_instruction_out_pc;
+--    s_datain_gen_reg <= s_instruction_out_pc;
     -- end solution!!
 
     ---********************************************************************
@@ -194,7 +191,7 @@ begin
             word_width => WORD_WIDTH
         )
         port map(
-            pi_instruction => s_instructionin_decoder,
+            pi_instruction => s_dataout_genreg,
             po_controlWord => s_controlWordout_decoder
         );
 
@@ -212,7 +209,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_datain_idExOp1,
+            pi_data1 => s_op1_registerfile_out,
             po_data => s_dataout_idExOp1
         );
 
@@ -223,7 +220,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_datain_idExOp2,
+            pi_data1 => s_op2_registerfile_out,
             po_data => s_dataout_idExOp2
         );
 
@@ -231,7 +228,7 @@ begin
         port map(
             pi_rst => pi_rst,
             pi_clk => pi_clk,
-            pi_controlWord => s_controlWordin_controlWordRegister1,
+            pi_controlWord => s_controlWordout_decoder,
             po_controlWord => s_controlWordout_controlWordRegister1
         );
 
@@ -242,14 +239,13 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_datain_gen_reg1,
+            pi_data1 => d,
             po_data => s_dataout_genreg1
         );
 
-    s_controlWordin_controlWordRegister1 <= s_controlWordout_decoder;
-    s_datain_gen_reg1 <= d;
-    s_datain_idExOp1 <= s_op1_registerfile_out;
-    s_datain_idExOp2 <= s_op2_registerfile_out;
+
+
+
 
     -- end solution!!
 
@@ -260,16 +256,13 @@ begin
     ALU : entity work.my_alu
         generic map(WORD_WIDTH, ALU_OPCODE_WIDTH)
         port map(
-            pi_OP1 => s_op1in_alu,
-            pi_OP2 => s_op2in_alu,
-            pi_aluOp => s_aluOp,
+            pi_OP1 => s_dataout_idExOp1,
+            pi_OP2 => s_dataout_idExOp2,
+            pi_aluOp => s_controlWordout_controlWordRegister1.ALU_OP,
             po_aluOut => s_aluout,
             po_carryOut => open
         );
 
-    s_op1in_alu <= s_datain_idExOp1;
-    s_op2in_alu <= s_datain_idExOp2;
-    s_aluOp <= s_controlWordout_controlWordRegister1.ALU_OP;
     -- end solution!!
 
     ---********************************************************************
@@ -280,7 +273,7 @@ begin
         port map(
             pi_rst => pi_rst,
             pi_clk => pi_clk,
-            pi_controlWord => s_controlWordin_controlWordRegister2,
+            pi_controlWord => s_controlWordout_controlWordRegister1,
             po_controlWord => s_controlWordout_controlWordRegister2
         );
 
@@ -291,12 +284,10 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_datain_gen_reg2,
+            pi_data1 => s_dataout_genreg1,
             po_data => s_dataout_genreg2
         );
 
-    s_controlWordin_controlWordRegister2 <= s_controlWordout_controlWordRegister1;
-    s_datain_gen_reg2 <= s_dataout_genreg1;
 
     ex_mem_res : entity work.PipelineRegister1
         generic map(
@@ -305,11 +296,10 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_ex_mem_res_in,
+            pi_data1 => s_aluout,
             po_data => s_ex_mem_res_out
         );
 
-    s_ex_mem_res_in <= s_aluout;
     -- end solution!!
 
     ---********************************************************************
@@ -326,7 +316,7 @@ begin
         port map(
             pi_rst => pi_rst,
             pi_clk => pi_clk,
-            pi_controlWord => s_controlWordin_controlWordRegister3,
+            pi_controlWord => s_controlWordout_controlWordRegister2,
             po_controlWord => s_controlWordout_controlWordRegister3
         );
 
@@ -337,12 +327,9 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_datain_gen_reg3,
+            pi_data1 => s_dataout_genreg2,
             po_data => s_dataout_genreg3
         );
-
-    s_controlWordin_controlWordRegister3 <= s_controlWordout_controlWordRegister2;
-    s_datain_gen_reg3 <= s_dataout_genreg2;
 
     mem_wb_res : entity work.PipelineRegister1
         generic map(
@@ -351,17 +338,16 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_mem_web_res_in,
+            pi_data1 => s_ex_mem_res_out,
             po_data => s_mem_web_res_out
         );
 
-    s_mem_web_res_in <= s_ex_mem_res_out;
+
     -- end solution!!
 
     ---********************************************************************
     ---* write back phase
     ---********************************************************************
-    s_writeRegAddr_registerfile_in <= s_dataout_genreg3;
     ---********************************************************************
     ---* register file (negative clock)
     ---********************************************************************
@@ -370,20 +356,17 @@ begin
         port map(
             pi_clk => not pi_clk,
             pi_rst => pi_rst,
-            pi_writeEnable => s_writeEnable_registerfile_in,
-            pi_readRegAddr1 => s_readRegAddr1_registerfile_in,
-            pi_readRegAddr2 => s_readRegAddr2_registerfile_in,
-            pi_writeRegAddr => s_writeRegAddr_registerfile_in,
-            pi_writeRegData => s_writeRegData_registerfile_in,
+            pi_writeEnable => s_controlWordout_controlWordRegister3.REG_WRITE,
+            pi_readRegAddr1 => s,
+            pi_readRegAddr2 => t,
+            pi_writeRegAddr => s_dataout_genreg3,
+            pi_writeRegData => s_mem_web_res_out,
             po_readRegData1 => s_op1_registerfile_out,
             po_readRegData2 => s_op2_registerfile_out,
             po_registerOut => po_registersOut
         );
 
     s_writeRegData_registerfile_in <= s_mem_web_res_out;
-    s_readRegAddr1_registerfile_in <= s;
-    s_readRegAddr2_registerfile_in <= t;
-    s_writeEnable_registerfile_in <= s_controlWordout_controlWordRegister3.REG_WRITE;
     -- end solution!!
     ---********************************************************************
     ---********************************************************************
