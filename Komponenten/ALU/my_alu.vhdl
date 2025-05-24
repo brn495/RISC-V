@@ -13,6 +13,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
+use IEEE.NUMERIC_STD.all;
 use work.Constant_Package.all;
 
 entity my_alu is
@@ -32,8 +33,8 @@ entity my_alu is
 end entity my_alu;
 
 architecture behavior of my_alu is
-    signal s_res1, s_res2, s_res3, s_res4, s_res5, s_res6, s_res7, s_res8 : std_logic_vector(G_DATA_WIDTH - 1 downto 0) := (others => '0');
-    signal s_cIn, s_cOut, s_shiftType, s_shiftDirection : std_logic := '0';
+    signal s_res1, s_res2, s_res3, s_res4, s_res5, s_res6, s_res7, s_res8, s_outputVergleich : std_logic_vector(G_DATA_WIDTH - 1 downto 0) := (others => '0');
+    signal s_cIn, s_cOut, s_shiftType, s_shiftDirection, s_signed : std_logic := '0';
 
 begin
     XOR1 : entity work.my_gen_xor generic map (G_DATA_WIDTH) port map (pi_op1, pi_op2, s_res1);
@@ -41,6 +42,7 @@ begin
     AND1 : entity work.my_gen_and generic map (G_DATA_WIDTH) port map (pi_op1, pi_op2, s_res3);
     Shift : entity work.my_shifter generic map (G_DATA_WIDTH) port map (pi_op1, pi_op2, s_shiftType, s_shiftDirection, s_res4);
     ADD1 : entity work.my_gen_n_bit_full_adder generic map (G_DATA_WIDTH) port map (pi_op1, pi_op2, s_cIn, s_res5, s_cOut);
+    COMP : entity work.my_comparer generic map (G_DATA_WIDTH) port map (pi_op1, pi_op2, s_signed, s_outputVergleich);
 
     -- begin solution:
     s_shiftType <= pi_aluOp(G_OP_WIDTH - 1);
@@ -49,6 +51,9 @@ begin
     with pi_aluOp select
         s_shiftDirection <= '1' when SRA_ALU_OP | SRL_ALU_OP,
         '0' when others;
+    with pi_aluOp select
+        s_signed <= '1' when SLT_ALU_OP,
+        '0' when others;
 
     with pi_aluOp select
         po_aluOut <= s_res1 when XOR_ALU_OP,
@@ -56,8 +61,12 @@ begin
         s_res3 when AND_ALU_OP,
         s_res4 when SRL_ALU_OP | SRA_ALU_OP | SLL_ALU_OP,
         s_res5 when ADD_ALU_OP | SUB_ALU_OP,
+        s_outputVergleich when SLT_ALU_OP | SLTU_ALU_OP,
         (others => '0') when others;
 
+    --with po_aluOut select
+    --                                                        po_zero <= '1' when "00000000",
+    --                                                        '0' when others;
     po_carryOut <= s_cOut;
     -- end solution!!
 end architecture behavior;
