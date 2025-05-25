@@ -34,8 +34,8 @@ architecture behavior of register_file is
 
     -- type registermemory is array (0 to reg_amount - 1) of std_logic_vector(word_width - 1 downto 0);
     signal reg_array : registerMemory := (
-        1 => std_logic_vector(to_unsigned(9, WORD_WIDTH)), -- x1 = 9
-        2 => std_logic_vector(to_unsigned(8, WORD_WIDTH)), -- x2 = 8
+        --1 => std_logic_vector(to_unsigned(9, WORD_WIDTH)), -- x1 = 9
+        --2 => std_logic_vector(to_unsigned(8, WORD_WIDTH)), -- x2 = 8
         others => (others => '0'));
     signal s_read1, s_read2 : std_logic_vector(word_width - 1 downto 0) := (others => '0');
 
