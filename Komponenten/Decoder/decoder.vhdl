@@ -31,6 +31,8 @@ begin
         case pi_instruction(6 downto 0) is -- case um v_insFormat zu setzen
             when R_INS_OP =>
                 v_insFormat := rFormat;
+            when I_INS_OP =>
+                v_insFormat := iFormat;
             when others =>
                 v_insFormat := nullFormat;
         end case;
@@ -39,6 +41,10 @@ begin
             when rFormat =>
                 po_controlWord.ALU_OP <= pi_instruction(30) & pi_instruction(14 downto 12);
                 po_controlWord.I_IMM_SEL <= '0';
+                po_controlWord.REG_WRITE <= '1';
+            when iFormat =>
+                po_controlWord.ALU_OP <= pi_instruction(30) & pi_instruction(14 downto 12);
+                po_controlWord.I_IMM_SEL <= '1';
                 po_controlWord.REG_WRITE <= '1';
             when others =>
                 po_controlWord.ALU_OP <= (others => '0');
