@@ -37,6 +37,7 @@ architecture behavior of register_file is
         1 => std_logic_vector(to_unsigned(9, WORD_WIDTH)), -- x1 = 9
         2 => std_logic_vector(to_unsigned(8, WORD_WIDTH)), -- x2 = 8
         others => (others => '0'));
+    signal s_read1, s_read2 : std_logic_vector(word_width - 1 downto 0) := (others => '0');
 
 begin
     process (pi_clk, pi_rst) -- Registerfile implementiert
@@ -47,9 +48,11 @@ begin
             if pi_writeEnable = '1' and to_integer(unsigned(pi_writeRegAddr)) /= 0 then -- Writing
                 reg_array(to_integer(unsigned(pi_writeRegAddr))) <= pi_writeRegData;
             end if;
+            s_read1 <= reg_array(to_integer(unsigned(pi_readRegAddr1)));
+            s_read2 <= reg_array(to_integer(unsigned(pi_readRegAddr2)));
         end if;
     end process;
-    po_readRegData1 <= reg_array(to_integer(unsigned(pi_readRegAddr1)));
-    po_readRegData2 <= reg_array(to_integer(unsigned(pi_readRegAddr2)));
+    po_readRegData1 <= s_read1;
+    po_readRegData2 <= s_read2;
     po_registerOut <= reg_array;
 end architecture behavior;
