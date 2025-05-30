@@ -9,9 +9,9 @@ entity Single_Port_RAM is
         address_width : integer := ADR_WIDTH
     );
     port (
-        pi_clk : in std_logic;
+        pi_clk : in std_logic := '0';
         pi_we : in std_logic := '0';
-        pi_rst : in std_logic;
+        pi_rst : in std_logic := '0';
         pi_add : in std_logic_vector(address_width - 1 downto 0) := (others => '0');
         pi_data : in std_logic_vector(word_width - 1 downto 0) := (others => '0');
         po_data : out std_logic_vector(word_width - 1 downto 0) := (others => '0')

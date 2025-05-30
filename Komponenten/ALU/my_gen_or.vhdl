@@ -3,9 +3,8 @@
 -- Group Details
 -- Lab Date: 11. Dezember 2024
 -- 1. Participant First and  Last Name: Baran Sönmez
--- 2. Participant First and Last Name: Alexander Shorstkin
- 
- 
+-- 2. Participant First and Last Name: Mashal Khan
+
 -- coding conventions
 -- g_<name> Generics
 -- p_<name> Ports
@@ -14,22 +13,22 @@
 -- v_<name> Variables
 
 library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use work.Constant_Package.ALL;
+use IEEE.STD_LOGIC_1164.all;
+use work.Constant_Package.all;
 
 -- begin solution:
 entity my_gen_or is
     generic (
-        G_DATA_WIDTH : Integer := DATA_WIDTH_GEN
+        G_DATA_WIDTH : integer := DATA_WIDTH_GEN
     );
     port (
-        pi_op1 : in STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
-        pi_op2 : in STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0);
-        po_result : out STD_LOGIC_VECTOR(G_DATA_WIDTH - 1 downto 0)
+        pi_op1 : in std_logic_vector(G_DATA_WIDTH - 1 downto 0) := (others => '0');
+        pi_op2 : in std_logic_vector(G_DATA_WIDTH - 1 downto 0) := (others => '0');
+        po_result : out std_logic_vector(G_DATA_WIDTH - 1 downto 0) := (others => '0')
     );
 end my_gen_or;
 architecture behavior of my_gen_or is
-    begin
-      po_result <= pi_op1 or pi_op2;
+begin
+    po_result <= pi_op1 or pi_op2;
 end architecture behavior;
 -- end solution!!

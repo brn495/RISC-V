@@ -3,7 +3,7 @@
 -- Group Details
 -- Lab Date: 22. Januar 2025
 -- 1. Participant First and  Last Name: Baran Sönmez
--- 2. Participant First and Last Name: Alexander Shorstkin
+-- 2. Participant First and Last Name: Mashal Khan
  
  
 -- coding conventions

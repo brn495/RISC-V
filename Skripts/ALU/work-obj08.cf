@@ -1,30 +1,33 @@
 v 4
-file . "../../Testbenches/ALU/my_alu_tb.vhdl" "6821459d8bed0af685d848b04c4082317b5aa209" "20250429090919.394":
-  entity my_alu_tb at 14( 441) + 0 on 28;
-  architecture behavior of my_alu_tb at 23( 617) + 0 on 29;
-file . "../../Komponenten/ALU/my_shifter.vhdl" "4d71401d6b058773fe65d792c5e94a1b5af62db1" "20250429090919.358":
-  entity my_shifter at 16( 352) + 0 on 24;
-  architecture behavior of my_shifter at 35( 845) + 0 on 25;
-file . "../../Komponenten/ALU/my_full_adder.vhdl" "3ffd257985cf09fe3811383cf3e18c7a8023a136" "20250429090919.326":
-  entity my_full_adder at 16( 352) + 0 on 20;
-  architecture structure of my_full_adder at 32( 694) + 0 on 21;
-file . "../../Komponenten/ALU/my_gen_xor.vhdl" "894a581e00a9647daa360005fdee4f88f6eaaa0c" "20250429090919.297":
-  entity my_gen_xor at 16( 354) + 0 on 16;
-  architecture behavior of my_gen_xor at 31( 747) + 0 on 17;
-file . "../../Komponenten/ALU/my_gen_or.vhdl" "66d7d22662d77b29676d2bf002d08b6c37e53449" "20250429090919.242":
-  entity my_gen_or at 16( 354) + 0 on 12;
-  architecture behavior of my_gen_or at 31( 769) + 0 on 13;
-file . "../../Packages/constant_package.vhdl" "5b38bf922b1a02d90b8f2b61c77804639b4615d6" "20250429090919.232":
-  package constant_package at 15( 514) + 0 on 11;
-file . "../../Komponenten/ALU/my_gen_and.vhdl" "2f11f7362df068e7220d4f27aa6685e5470fb55f" "20250429090919.272":
-  entity my_gen_and at 16( 354) + 0 on 14;
-  architecture behavior of my_gen_and at 31( 771) + 0 on 15;
-file . "../../Komponenten/ALU/my_half_adder.vhdl" "84fa20a4f9448c9688654719347ee3c4c0ac5f9d" "20250429090919.311":
+file . "../../Testbenches/ALU/my_alu_tb.vhdl" "93bab619963151d82d30e0d2095902637b30580c" "20250527092039.145":
+  entity my_alu_tb at 7( 274) + 0 on 30;
+  architecture behavior of my_alu_tb at 16( 450) + 0 on 31;
+file . "../../Komponenten/ALU/my_comparer.vhdl" "0576067e164bb5d16394dc37a811596fd46c58fa" "20250527092039.111":
+  entity my_comparer at 15( 349) + 0 on 26;
+  architecture behavior of my_comparer at 34( 872) + 0 on 27;
+file . "../../Komponenten/ALU/my_gen_n_bit_full_adder.vhdl" "d20d61d46f35d9a9e91d671cbd552b2eeb6af8df" "20250527092039.080":
+  entity my_gen_n_bit_full_adder at 15( 349) + 0 on 22;
+  architecture structure of my_gen_n_bit_full_adder at 34( 902) + 0 on 23;
+file . "../../Komponenten/ALU/my_half_adder.vhdl" "84fa20a4f9448c9688654719347ee3c4c0ac5f9d" "20250527092039.054":
   entity my_half_adder at 16( 352) + 0 on 18;
   architecture dataflow of my_half_adder at 36( 923) + 0 on 19;
-file . "../../Komponenten/ALU/my_gen_n_bit_full_adder.vhdl" "837db3fca74e00318e2ea1fe97fa36c15163e3d6" "20250429090919.340":
-  entity my_gen_n_bit_full_adder at 16( 352) + 0 on 22;
-  architecture structure of my_gen_n_bit_full_adder at 35( 887) + 0 on 23;
-file . "../../Komponenten/ALU/my_alu.vhdl" "619da3b4d4cc37a3a9e06ac81357b4dcac27209b" "20250429090919.375":
-  entity my_alu at 16( 344) + 0 on 26;
-  architecture behavior of my_alu at 37( 895) + 0 on 27;
+file . "../../Komponenten/ALU/my_gen_and.vhdl" "4053abdb0985b06c603c93e6a3459cc886a403e0" "20250527092039.029":
+  entity my_gen_and at 15( 351) + 0 on 14;
+  architecture behavior of my_gen_and at 30( 825) + 0 on 15;
+file . "../../Packages/constant_package.vhdl" "df65a75db248a3056d4bef4132916ef098b57667" "20250527092039.005":
+  package constant_package at 15( 547) + 0 on 11;
+file . "../../Komponenten/ALU/my_gen_or.vhdl" "593844756808afbdb414ede46b658491064ddedf" "20250527092039.017":
+  entity my_gen_or at 15( 351) + 0 on 12;
+  architecture behavior of my_gen_or at 30( 823) + 0 on 13;
+file . "../../Komponenten/ALU/my_gen_xor.vhdl" "40afb05fda6e4a6797b5a3d8067c2f5971113c06" "20250527092039.042":
+  entity my_gen_xor at 15( 351) + 0 on 16;
+  architecture behavior of my_gen_xor at 30( 825) + 0 on 17;
+file . "../../Komponenten/ALU/my_full_adder.vhdl" "3ffd257985cf09fe3811383cf3e18c7a8023a136" "20250527092039.067":
+  entity my_full_adder at 16( 352) + 0 on 20;
+  architecture structure of my_full_adder at 32( 694) + 0 on 21;
+file . "../../Komponenten/ALU/my_shifter.vhdl" "0a18c67feb788822f694a8cea4b48af23d09b4df" "20250527092039.095":
+  entity my_shifter at 15( 349) + 0 on 24;
+  architecture behavior of my_shifter at 59( 1999) + 0 on 25;
+file . "../../Komponenten/ALU/my_alu.vhdl" "4eea757a782ff6bd071069c16906fbbe039fb115" "20250527092039.127":
+  entity my_alu at 14( 464) + 0 on 28;
+  architecture behavior of my_alu at 35( 1097) + 0 on 29;
