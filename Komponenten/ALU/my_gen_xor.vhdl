@@ -3,7 +3,7 @@
 -- Group Details
 -- Lab Date: 11. Dezember 2024
 -- 1. Participant First and  Last Name: Baran Sönmez
--- 2. Participant First and Last Name: Alexander Shorstkin
+-- 2. Participant First and Last Name: Mashal Khan
 
 -- coding conventions
 -- g_<name> Generics

@@ -63,7 +63,7 @@ begin
         s_res3 when AND_ALU_OP,
         s_res4 when SRL_ALU_OP | SRA_ALU_OP | SLL_ALU_OP,
         s_res5 when ADD_ALU_OP | SUB_ALU_OP,
-        s_slt when SLT_ALU_OP,
+        s_slt when SLT_ALU_OP | SLTI_ALU_OP,
         s_sltu when SLTU_ALU_OP | SLTIU_ALU_OP,
         (others => '0') when others;
 

@@ -42,7 +42,8 @@ package constant_package is
     constant SLTU_ALU_OP : std_logic_vector(ALU_OPCODE_WIDTH - 1 downto 0) := "0011";
 
     constant SLTIU_ALU_OP : std_logic_vector(ALU_OPCODE_WIDTH - 1 downto 0) := "1011";
-
+    constant SLTI_ALU_OP : std_logic_vector(ALU_OPCODE_WIDTH - 1 downto 0) := "1010";
+    
     constant EQ_ALU_OP : std_logic_vector(ALU_OPCODE_WIDTH - 1 downto 0) := "1110"; -- Added this to simplify branch implementation
 
     constant FUNC3_SHIFTR : std_logic_vector(FUNC3_WIDTH - 1 downto 0) := "101";
