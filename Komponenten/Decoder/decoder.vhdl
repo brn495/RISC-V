@@ -33,6 +33,8 @@ begin
                 v_insFormat := rFormat;
             when I_INS_OP =>
                 v_insFormat := iFormat;
+            when LUI_INS_OP =>
+                v_insFormat := uFormat;
             when others =>
                 v_insFormat := nullFormat;
         end case;
@@ -44,6 +46,11 @@ begin
                 po_controlWord.REG_WRITE <= '1';
             when iFormat =>
                 po_controlWord.ALU_OP <= pi_instruction(30) & pi_instruction(14 downto 12);
+                po_controlWord.I_IMM_SEL <= '1';
+                po_controlWord.REG_WRITE <= '1';
+            when uFormat =>
+                po_controlWord.ALU_OP <= ADD_ALU_OP;
+                po_controlWord.WB_SEL <= "01";
                 po_controlWord.I_IMM_SEL <= '1';
                 po_controlWord.REG_WRITE <= '1';
             when others =>
