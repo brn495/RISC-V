@@ -33,7 +33,7 @@ begin
                 v_insFormat := rFormat;
             when I_INS_OP =>
                 v_insFormat := iFormat;
-            when LUI_INS_OP =>
+            when LUI_INS_OP | AUIPC_INS_OP =>
                 v_insFormat := uFormat;
             when others =>
                 v_insFormat := nullFormat;
@@ -53,6 +53,7 @@ begin
                 po_controlWord.WB_SEL <= "01";
                 po_controlWord.I_IMM_SEL <= '1';
                 po_controlWord.REG_WRITE <= '1';
+                po_controlWord.A_SEL <= '1';
             when others =>
                 po_controlWord.ALU_OP <= (others => '0');
                 po_controlWord.I_IMM_SEL <= '0';

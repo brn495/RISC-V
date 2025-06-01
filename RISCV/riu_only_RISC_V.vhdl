@@ -45,7 +45,7 @@ architecture structure of riu_only_RISC_V is
 
     -- instruction cache signals
     signal s_addrin_instruction_cache : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_instruction_out_pc : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_instruction_out_instruction_cache : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- gen register signals
     signal s_datain_gen_reg : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
@@ -78,6 +78,19 @@ architecture structure of riu_only_RISC_V is
 
     signal s_datain_gen_reg3 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
     signal s_dataout_genreg3 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+
+    -- gen_register_pc 1-3 signals
+    signal s_datain_gen_reg_pc1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_dataout_gen_reg_pc1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
+    signal s_datain_gen_reg_pc2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_dataout_gen_reg_pc2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
+    signal s_datain_gen_reg_pc3 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_dataout_gen_reg_pc3 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
+    signal s_datain_gen_reg_pc4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_dataout_gen_reg_pc4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- register file signals
     signal s_writeEnable_registerfile_in : std_logic := '0';
@@ -131,6 +144,11 @@ architecture structure of riu_only_RISC_V is
     signal s_sel_mux : std_logic := '0';
     signal s_dataout_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
+    -- mux_pc signals
+    signal s_datain_mux_pc : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_sel_mux_pc : std_logic := '0';
+    signal s_dataout_mux_pc : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
     -- mux_wb signals
     signal s_dataout_mux_wb : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
@@ -179,9 +197,19 @@ begin
             pi_clk => not pi_clk,
             pi_rst => open,
             pi_instructionCache => pi_instruction,
-            po_instruction => s_instruction_out_pc
+            po_instruction => s_instruction_out_instruction_cache
         );
 
+    gen_reg_pc1 : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_dataout_pc,
+            po_data => s_dataout_gen_reg_pc1
+        );
     -- end solution!!
 
     ---********************************************************************
@@ -196,10 +224,20 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_instruction_out_pc,
+            pi_data1 => s_instruction_out_instruction_cache,
             po_data => s_dataout_genreg
         );
 
+    gen_reg_pc2 : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_dataout_gen_reg_pc1,
+            po_data => s_dataout_gen_reg_pc2
+        );
     --    s_datain_gen_reg <= s_instruction_out_pc;
     -- end solution!!
 
@@ -235,7 +273,7 @@ begin
 
     with s_dataout_genreg(6 downto 0) select
     s_signextension_out <=
-                          s_signextensionU_out when LUI_INS_OP,
+                          s_signextensionU_out when LUI_INS_OP | AUIPC_INS_OP,
                           s_signextensionI_out when I_INS_OP,
                           x"00000000" when others;
     -- s_instructionin_decoder <= s_dataout_genreg;
@@ -307,6 +345,38 @@ begin
             pi_second => s_id_ex_se_out,
             po_res => s_dataout_mux
         );
+
+    gen_reg_pc3 : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_dataout_gen_reg_pc2,
+            po_data => s_dataout_gen_reg_pc3
+        );
+
+    --gen_reg_pc4 : entity work.PipelineRegister1
+    --    generic map(
+    --        registerWidth => WORD_WIDTH
+    --    )
+    --    port map(
+    --        pi_clk => pi_clk,
+    --        pi_rst => pi_rst,
+    --        pi_data1 => s_dataout_gen_reg_pc3,
+    --        po_data => s_dataout_gen_reg_pc4
+    --    );
+    mux_pc : entity work.gen_mux
+        generic map(
+            dataWidth => WORD_WIDTH
+        )
+        port map(
+            pi_sel => s_controlWordout_controlWordRegister2.A_SEL,
+            pi_first => s_dataout_idExOp1,
+            pi_second => s_dataout_gen_reg_pc3,
+            po_res => s_dataout_mux_pc
+        );
     -- end solution!!
 
     ---********************************************************************
@@ -316,7 +386,7 @@ begin
     ALU : entity work.my_alu
         generic map(WORD_WIDTH, ALU_OPCODE_WIDTH)
         port map(
-            pi_OP1 => s_dataout_idExOp1,
+            pi_OP1 => s_dataout_mux_pc,
             pi_OP2 => s_dataout_mux,
             pi_aluOp => s_controlWordout_controlWordRegister1.ALU_OP,
             po_aluOut => s_aluout,
