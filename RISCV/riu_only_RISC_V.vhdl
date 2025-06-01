@@ -104,13 +104,23 @@ architecture structure of riu_only_RISC_V is
     signal s_ex_mem_res_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_ex_mem_res_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
+    -- ex_mem_Immidiant signals
+    signal s_ex_mem_Immidiant_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_ex_mem_Immidiant_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
     -- mem_web_res signals
     signal s_mem_web_res_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_mem_web_res_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
+    -- mem_web_Immidiant signals
+    signal s_mem_web_Immidiant_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_mem_web_Immidiant_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
     -- signextension signals
     signal s_signextension_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_signextension_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_signextensionI_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_signextensionU_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- id_ex_se signals
     signal s_id_ex_se_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
@@ -120,6 +130,9 @@ architecture structure of riu_only_RISC_V is
     signal s_datain_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_sel_mux : std_logic := '0';
     signal s_dataout_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
+    -- mux_wb signals
+    signal s_dataout_mux_wb : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- end solution!!
 begin
@@ -215,10 +228,16 @@ begin
             pi_instr => s_dataout_genreg,
             po_storeImm => open,
             po_immediateImm => s_signextensionI_out,
-            po_unsignedImm => open,
+            po_unsignedImm => s_signextensionU_out,
             po_branchImm => open,
             po_jumpImm => open
         );
+
+    with s_dataout_genreg(6 downto 0) select
+    s_signextension_out <=
+                          s_signextensionU_out when LUI_INS_OP,
+                          s_signextensionI_out when I_INS_OP,
+                          x"00000000" when others;
     -- s_instructionin_decoder <= s_dataout_genreg;
     -- end solution!!
 
@@ -274,7 +293,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_signextensionI_out,
+            pi_data1 => s_signextension_out,
             po_data => s_id_ex_se_out
         );
 
@@ -340,6 +359,16 @@ begin
             po_data => s_ex_mem_res_out
         );
 
+    ex_mem_Immidiant : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_id_ex_se_out,
+            po_data => s_ex_mem_Immidiant_out
+        );
     -- end solution!!
 
     ---********************************************************************
@@ -386,6 +415,30 @@ begin
             pi_data1 => s_ex_mem_res_out,
             po_data => s_mem_web_res_out
         );
+
+    mem_wb_Immidiant : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_ex_mem_Immidiant_out,
+            po_data => s_mem_web_Immidiant_out
+        );
+
+    gen_mux4to1_inst : entity work.gen_mux4to1
+        generic map(
+            dataWidth => WORD_WIDTH
+        )
+        port map(
+            pi_sel => s_controlWordout_controlWordRegister3.WB_SEL,
+            pi_first => s_mem_web_res_out,
+            pi_second => s_mem_web_Immidiant_out,
+            pi_third => open,
+            pi_fourth => open,
+            po_res => s_dataout_mux_wb
+        );
     ---********************************************************************
     ---* register file (negative clock)
     ---********************************************************************
@@ -398,7 +451,7 @@ begin
             pi_readRegAddr1 => s,
             pi_readRegAddr2 => t,
             pi_writeRegAddr => s_dataout_genreg3,
-            pi_writeRegData => s_mem_web_res_out,
+            pi_writeRegData => s_dataout_mux_wb,
             po_readRegData1 => s_op1_registerfile_out,
             po_readRegData2 => s_op2_registerfile_out,
             po_registerOut => po_registersOut
