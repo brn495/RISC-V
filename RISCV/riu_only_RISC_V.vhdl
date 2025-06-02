@@ -139,17 +139,16 @@ architecture structure of riu_only_RISC_V is
     signal s_id_ex_se_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- mux signals
-    signal s_datain_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_sel_mux : std_logic := '0';
     signal s_dataout_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- mux_pc signals
-    signal s_datain_mux_pc : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_sel_mux_pc : std_logic := '0';
     signal s_dataout_mux_pc : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- mux_wb signals
     signal s_dataout_mux_wb : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
+    -- mux_pc_plus4 signals
+    signal s_dataout_mux_pc_plus4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- end solution!!
 begin
@@ -177,10 +176,20 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_p_sum_out_full_adder,
+            pi_data1 => s_dataout_mux_pc_plus4,
             po_data => s_dataout_pc
         );
 
+    gen_mux_pc_plus4 : entity work.gen_mux
+        generic map(
+            dataWidth => WORD_WIDTH
+        )
+        port map(
+            pi_sel => s_controlWordout_controlWordRegister2.PC_SEL,
+            pi_first => s_p_sum_out_full_adder,
+            pi_second => s_ex_mem_res_out,
+            po_res => s_dataout_mux_pc_plus4
+        );
     -- end solution!!
 
     ---********************************************************************
@@ -472,6 +481,16 @@ begin
             po_data => s_dataout_genreg3
         );
 
+    pc_plus4_wb : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_dataout_mem_pc_plus4,
+            po_data => s_dataout_wb_pc_plus4
+        );
     -- end solution!!
 
     ---********************************************************************
@@ -507,7 +526,7 @@ begin
             pi_sel => s_controlWordout_controlWordRegister3.WB_SEL,
             pi_first => s_mem_web_res_out,
             pi_second => s_mem_web_Immidiant_out,
-            pi_third => open,
+            pi_third => s_dataout_wb_pc_plus4,
             pi_fourth => open,
             po_res => s_dataout_mux_wb
         );
