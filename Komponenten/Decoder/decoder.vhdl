@@ -49,15 +49,26 @@ begin
                 po_controlWord.I_IMM_SEL <= '1';
                 po_controlWord.REG_WRITE <= '1';
             when uFormat =>
-                po_controlWord.ALU_OP <= ADD_ALU_OP;
-                po_controlWord.WB_SEL <= "01";
-                po_controlWord.I_IMM_SEL <= '1';
-                po_controlWord.REG_WRITE <= '1';
-                po_controlWord.A_SEL <= '1';
+                case pi_instruction(6 downto 0) is
+                    when LUI_INS_OP =>
+                        po_controlWord.ALU_OP <= ADD_ALU_OP;
+                        po_controlWord.I_IMM_SEL <= '1';
+                        po_controlWord.WB_SEL <= "01";
+                        po_controlWord.REG_WRITE <= '1';
+                        po_controlWord.A_SEL <= '0';
+                        po_controlWord.PC_SEL <= '0';
+                    when AUIPC_INS_OP =>
+                        po_controlWord.ALU_OP <= ADD_ALU_OP;
+                        po_controlWord.I_IMM_SEL <= '1';
+                        po_controlWord.WB_SEL <= "00";
+                        po_controlWord.REG_WRITE <= '1';
+                        po_controlWord.A_SEL <= '1';
+                        po_controlWord.PC_SEL <= '0';
+                    when others =>
+                        po_controlWord <= control_word_init;
+                end case;
             when others =>
-                po_controlWord.ALU_OP <= (others => '0');
-                po_controlWord.I_IMM_SEL <= '0';
-                po_controlWord.REG_WRITE <= '0';
+                po_controlWord <= control_word_init;
         end case;
     end process;
     -- end solution!!

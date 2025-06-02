@@ -79,18 +79,12 @@ architecture structure of riu_only_RISC_V is
     signal s_datain_gen_reg3 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
     signal s_dataout_genreg3 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
 
-    -- gen_register_pc 1-3 signals
+    -- gen_register_pc 1-2 signals
     signal s_datain_gen_reg_pc1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_dataout_gen_reg_pc1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     signal s_datain_gen_reg_pc2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_dataout_gen_reg_pc2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-
-    signal s_datain_gen_reg_pc3 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dataout_gen_reg_pc3 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-
-    signal s_datain_gen_reg_pc4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dataout_gen_reg_pc4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- register file signals
     signal s_writeEnable_registerfile_in : std_logic := '0';
@@ -346,35 +340,14 @@ begin
             po_res => s_dataout_mux
         );
 
-    gen_reg_pc3 : entity work.PipelineRegister1
-        generic map(
-            registerWidth => WORD_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst,
-            pi_data1 => s_dataout_gen_reg_pc2,
-            po_data => s_dataout_gen_reg_pc3
-        );
-
-    --gen_reg_pc4 : entity work.PipelineRegister1
-    --    generic map(
-    --        registerWidth => WORD_WIDTH
-    --    )
-    --    port map(
-    --        pi_clk => pi_clk,
-    --        pi_rst => pi_rst,
-    --        pi_data1 => s_dataout_gen_reg_pc3,
-    --        po_data => s_dataout_gen_reg_pc4
-    --    );
     mux_pc : entity work.gen_mux
         generic map(
             dataWidth => WORD_WIDTH
         )
         port map(
-            pi_sel => s_controlWordout_controlWordRegister2.A_SEL,
+            pi_sel => s_controlWordout_controlWordRegister1.A_SEL,
             pi_first => s_dataout_idExOp1,
-            pi_second => s_dataout_gen_reg_pc3,
+            pi_second => s_dataout_gen_reg_pc2,
             po_res => s_dataout_mux_pc
         );
     -- end solution!!
