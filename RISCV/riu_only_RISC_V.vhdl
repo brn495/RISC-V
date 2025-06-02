@@ -36,9 +36,14 @@ architecture structure of riu_only_RISC_V is
 
     -- n_bit_full_adder signals
     signal s_carry_in_full_adder : std_logic := '0';
-    signal s_b_in_full_adder : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_p_sum_out_full_adder : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
+    -- n_bit_full_adder_plus4 signals
+    signal s_p_sum_out_full_adder_plus4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
+    -- pipeline reg für pc_plus4 bis wb
+    signal s_dataout_mem_pc_plus4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_dataout_wb_pc_plus4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     -- pc signals
     signal s_datain_pc : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_dataout_pc : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
@@ -367,6 +372,18 @@ begin
             po_carryOut => open
         );
 
+    n_bit_full_adder_plus4 : entity work.my_gen_n_bit_full_adder
+        generic map(
+            G_DATA_WIDTH => WORD_WIDTH
+        )
+        port map(
+            pi_A => ADD_FOUR_TO_ADDRESS,
+            pi_B => s_dataout_gen_reg_pc2,
+            pi_CARRY_IN => s_carry_in_full_adder,
+            po_SUM => s_p_sum_out_full_adder_plus4,
+            po_CARRY_OUT => open
+        );
+
     -- end solution!!
 
     ---********************************************************************
@@ -412,6 +429,17 @@ begin
             pi_rst => pi_rst,
             pi_data1 => s_id_ex_se_out,
             po_data => s_ex_mem_Immidiant_out
+        );
+
+    pc_plus4_mem : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_p_sum_out_full_adder_plus4,
+            po_data => s_dataout_mem_pc_plus4
         );
     -- end solution!!
 
