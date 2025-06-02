@@ -70,7 +70,7 @@ begin
                         po_controlWord.WB_SEL <= "10";
                         po_controlWord.REG_WRITE <= '1';
                         po_controlWord.A_SEL <= '1';
-                        po_controlWord.PC_SEL <= '0';
+                        po_controlWord.PC_SEL <= '1';
                     when others =>
                         po_controlWord <= control_word_init;
                 end case;
