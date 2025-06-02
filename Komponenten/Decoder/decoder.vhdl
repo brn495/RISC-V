@@ -35,6 +35,8 @@ begin
                 v_insFormat := iFormat;
             when LUI_INS_OP | AUIPC_INS_OP =>
                 v_insFormat := uFormat;
+            when JAL_INS_OP =>
+                v_insFormat := jFormat;
             when others =>
                 v_insFormat := nullFormat;
         end case;
@@ -67,6 +69,13 @@ begin
                     when others =>
                         po_controlWord <= control_word_init;
                 end case;
+            when jFormat =>
+                po_controlWord.ALU_OP <= ADD_ALU_OP;
+                po_controlWord.I_IMM_SEL <= '1';
+                po_controlWord.WB_SEL <= "10";
+                po_controlWord.REG_WRITE <= '1';
+                po_controlWord.A_SEL <= '1';
+                po_controlWord.PC_SEL <= '0';
             when others =>
                 po_controlWord <= control_word_init;
         end case;
