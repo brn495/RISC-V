@@ -128,7 +128,7 @@ architecture structure of riu_only_RISC_V is
     signal s_signextension_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_signextensionI_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_signextensionU_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-
+    signal s_signextensionJ_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     -- id_ex_se signals
     signal s_id_ex_se_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_id_ex_se_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
@@ -262,13 +262,14 @@ begin
             po_immediateImm => s_signextensionI_out,
             po_unsignedImm => s_signextensionU_out,
             po_branchImm => open,
-            po_jumpImm => open
+            po_jumpImm => s_signextensionJ_out
         );
 
     with s_dataout_genreg(6 downto 0) select
     s_signextension_out <=
                           s_signextensionU_out when LUI_INS_OP | AUIPC_INS_OP,
                           s_signextensionI_out when I_INS_OP,
+                          s_signextensionJ_out when JAL_INS_OP,
                           x"00000000" when others;
     -- s_instructionin_decoder <= s_dataout_genreg;
     -- end solution!!
