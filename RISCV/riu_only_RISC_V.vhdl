@@ -282,7 +282,7 @@ begin
     with s_dataout_genreg(6 downto 0) select
     s_signextension_out <=
                           s_signextensionU_out when LUI_INS_OP | AUIPC_INS_OP,
-                          s_signextensionI_out when I_INS_OP,
+                          s_signextensionI_out when I_INS_OP | JALR_INS_OP,
                           s_signextensionJ_out when JAL_INS_OP,
                           x"00000000" when others;
     -- s_instructionin_decoder <= s_dataout_genreg;
