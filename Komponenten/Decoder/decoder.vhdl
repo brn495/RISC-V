@@ -31,8 +31,10 @@ begin
         case pi_instruction(6 downto 0) is -- case um v_insFormat zu setzen
             when R_INS_OP =>
                 v_insFormat := rFormat;
-            when I_INS_OP =>
+            when I_INS_OP | JALR_INS_OP =>
                 v_insFormat := iFormat;
+            when LUI_INS_OP | AUIPC_INS_OP | JAL_INS_OP =>
+                v_insFormat := uFormat;
             when others =>
                 v_insFormat := nullFormat;
         end case;
@@ -43,13 +45,47 @@ begin
                 po_controlWord.I_IMM_SEL <= '0';
                 po_controlWord.REG_WRITE <= '1';
             when iFormat =>
-                po_controlWord.ALU_OP <= pi_instruction(30) & pi_instruction(14 downto 12);
-                po_controlWord.I_IMM_SEL <= '1';
-                po_controlWord.REG_WRITE <= '1';
+                case pi_instruction(6 downto 0) is
+                    when JALR_INS_OP =>
+                        po_controlWord.ALU_OP <= ADD_ALU_OP;
+                        po_controlWord.I_IMM_SEL <= '1';
+                        po_controlWord.WB_SEL <= "10";
+                        po_controlWord.REG_WRITE <= '1';
+                        po_controlWord.A_SEL <= '0';
+                        po_controlWord.PC_SEL <= '1';
+                    when others =>
+                        po_controlWord.ALU_OP <= pi_instruction(30) & pi_instruction(14 downto 12);
+                        po_controlWord.I_IMM_SEL <= '1';
+                        po_controlWord.REG_WRITE <= '1';
+                end case;
+            when uFormat =>
+                case pi_instruction(6 downto 0) is
+                    when LUI_INS_OP =>
+                        po_controlWord.ALU_OP <= ADD_ALU_OP;
+                        po_controlWord.I_IMM_SEL <= '1';
+                        po_controlWord.WB_SEL <= "01";
+                        po_controlWord.REG_WRITE <= '1';
+                        po_controlWord.A_SEL <= '0';
+                        po_controlWord.PC_SEL <= '0';
+                    when AUIPC_INS_OP =>
+                        po_controlWord.ALU_OP <= ADD_ALU_OP;
+                        po_controlWord.I_IMM_SEL <= '1';
+                        po_controlWord.WB_SEL <= "00";
+                        po_controlWord.REG_WRITE <= '1';
+                        po_controlWord.A_SEL <= '1';
+                        po_controlWord.PC_SEL <= '0';
+                    when JAL_INS_OP =>
+                        po_controlWord.ALU_OP <= ADD_ALU_OP;
+                        po_controlWord.I_IMM_SEL <= '1';
+                        po_controlWord.WB_SEL <= "10";
+                        po_controlWord.REG_WRITE <= '1';
+                        po_controlWord.A_SEL <= '1';
+                        po_controlWord.PC_SEL <= '1';
+                    when others =>
+                        po_controlWord <= control_word_init;
+                end case;
             when others =>
-                po_controlWord.ALU_OP <= (others => '0');
-                po_controlWord.I_IMM_SEL <= '0';
-                po_controlWord.REG_WRITE <= '0';
+                po_controlWord <= control_word_init;
         end case;
     end process;
     -- end solution!!
