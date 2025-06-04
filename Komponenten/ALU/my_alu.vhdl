@@ -26,7 +26,8 @@ entity my_alu is
         pi_OP1, pi_OP2 : in std_logic_vector(G_DATA_WIDTH - 1 downto 0) := (others => '0');
         pi_aluOp : in std_logic_vector(G_OP_WIDTH - 1 downto 0) := (others => '0');
         po_aluOut : out std_logic_vector(G_DATA_WIDTH - 1 downto 0) := (others => '0');
-        po_carryOut : out std_logic := '0'
+        po_carryOut : out std_logic := '0';
+        po_zero : out std_logic := '0'
         -- end solution!!
     );
 
@@ -67,9 +68,9 @@ begin
         s_sltu when SLTU_ALU_OP | SLTIU_ALU_OP,
         (others => '0') when others;
 
-    --with po_aluOut select
-    --                                                        po_zero <= '1' when "00000000",
-    --                                                        '0' when others;
+    with po_aluOut select
+        po_zero <= '1' when "00000000",
+        '0' when others;
     po_carryOut <= s_cOut;
     -- end solution!!
 end architecture behavior;

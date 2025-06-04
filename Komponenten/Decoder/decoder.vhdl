@@ -35,6 +35,8 @@ begin
                 v_insFormat := iFormat;
             when LUI_INS_OP | AUIPC_INS_OP | JAL_INS_OP =>
                 v_insFormat := uFormat;
+            when B_INS_OP =>
+                v_insFormat := bFormat;
             when others =>
                 v_insFormat := nullFormat;
         end case;
