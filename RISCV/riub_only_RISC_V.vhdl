@@ -209,7 +209,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst or s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_instruction_cache,
             po_data => s_instructionCacheRegisterIF_ID
         );
@@ -220,7 +220,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst or s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_pc_register,
             po_data => s_pc_to_pcPlus4_registerIF_ID
         );
@@ -277,7 +277,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst or s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_op1_registerfile_out,
             po_data => s_idExOp1
         );
@@ -288,14 +288,14 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst or s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_op2_registerfile_out,
             po_data => s_idExOp2
         );
 
     ControlWordRegister1 : entity work.ControlWordRegister
         port map(
-            pi_rst => pi_rst or s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL,
+            pi_rst => pi_rst or s_flush,
             pi_clk => pi_clk,
             pi_controlWord => s_decoder,
             po_controlWord => s_controlWordRegisterID_EX
@@ -307,7 +307,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst or s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => d,
             po_data => s_dAddr_ID_EX
         );
@@ -318,7 +318,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst or s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_signextension_out,
             po_data => s_id_ex_Immediat
         );
@@ -329,12 +329,12 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst or s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_pc_to_pcPlus4_registerIF_ID,
             po_data => s_pc_to_pcPlus4_registerID_EX
         );
 
-    -- s_flush <= s_select_for_branchEX_EX or s_controlWordRegisterID_EX.PC_SEL;
+    s_flush <= s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL;
     -- end solution!!
 
     ---********************************************************************
