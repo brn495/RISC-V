@@ -40,6 +40,12 @@ architecture structure of riub_only_RISC_V is
     -- n_bit_full_adder_plus4 
     signal s_sum_pc_plus4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
+    -- branch adder
+    signal s_sum_branch_adder : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
+    -- branch adder register EX -> MEM
+    signal s_branchAdder_EX_MEM : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
     -- PC Register
     signal s_pc_register : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
@@ -48,8 +54,8 @@ architecture structure of riub_only_RISC_V is
     signal s_pc_to_pcPlus4_registerID_EX : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- pipeline reg für pc_plus4 bis wb
+    signal s_pc_plus4_EX_MEM : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_pc_plus4_MEM_WB : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_pc_plus4_WB_MUX : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- instruction cache signals
     signal s_instruction_cache : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
@@ -358,6 +364,18 @@ begin
             po_CARRY_OUT => open
         );
 
+    branch_adder : entity work.my_gen_n_bit_full_adder
+        generic map(
+            G_DATA_WIDTH => WORD_WIDTH
+        )
+        port map(
+            pi_A => s_pc_to_pcPlus4_registerID_EX,
+            pi_B => s_id_ex_Immediat,
+            pi_CARRY_IN => '0',
+            po_SUM => s_sum_branch_adder,
+            po_CARRY_OUT => open
+        );
+
     -- end solution!!
 
     ---********************************************************************
@@ -405,7 +423,7 @@ begin
             po_data => s_ex_mem_Immediat
         );
 
-    pc_plus4_mem : entity work.PipelineRegister1
+    pc_plus4_ex_mem : entity work.PipelineRegister1
         generic map(
             registerWidth => WORD_WIDTH
         )
@@ -413,7 +431,18 @@ begin
             pi_clk => pi_clk,
             pi_rst => pi_rst,
             pi_data1 => s_sum_pc_plus4,
-            po_data => s_pc_plus4_MEM_WB
+            po_data => s_pc_plus4_EX_MEM
+        );
+
+    branch_adder_EX_MEM : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_sum_branch_adder,
+            po_data => s_branchAdder_EX_MEM
         );
     -- end solution!!
 
@@ -468,15 +497,15 @@ begin
             po_data => s_mem_wb_Immediat
         );
 
-    pc_plus4_wb : entity work.PipelineRegister1
+    pc_plus4_mem_wb : entity work.PipelineRegister1
         generic map(
             registerWidth => WORD_WIDTH
         )
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_pc_plus4_MEM_WB,
-            po_data => s_pc_plus4_WB_MUX
+            pi_data1 => s_pc_plus4_EX_MEM,
+            po_data => s_pc_plus4_MEM_WB
         );
 
     -- end solution!!
@@ -492,7 +521,7 @@ begin
             pi_sel => s_controlWordRegisterMEM_WB.WB_SEL,
             pi_first => s_mem_wb_res,
             pi_second => s_mem_wb_Immediat,
-            pi_third => s_pc_plus4_WB_MUX,
+            pi_third => s_pc_plus4_MEM_WB,
             pi_fourth => open,
             po_res => s_wbSelect_mux
         );
