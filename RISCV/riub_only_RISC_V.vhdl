@@ -125,7 +125,7 @@ architecture structure of riub_only_RISC_V is
     signal s_select_for_branchEX_MEM : std_logic := '0';
     signal s_bSel_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
-    -- Flush (einfach B_SEL und den Reset mir OR verküpfen)
+    -- Flush (einfach B_SEL (auch PC_SEL) und den Reset mir OR verküpfen, aus EX_MEM)
     signal s_flush : std_logic := '0';
     -- end solution!!
 begin
