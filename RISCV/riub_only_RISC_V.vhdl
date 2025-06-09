@@ -125,6 +125,8 @@ architecture structure of riub_only_RISC_V is
     signal s_select_for_branchEX_MEM : std_logic := '0';
     signal s_bSel_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
+    -- Flush (einfach B_SEL und den Reset mir OR verküpfen)
+    signal s_flush : std_logic := '0';
     -- end solution!!
 begin
 
@@ -161,11 +163,21 @@ begin
         )
         port map(
             pi_sel => s_controlWordRegisterEX_MEM.PC_SEL,
-            pi_first => s_sum_pc,
+            pi_first => s_bSel_mux,
             pi_second => s_ex_mem_res,
             po_res => s_pcSel_mux
         );
 
+    gen_mux_pc_branchAddress : entity work.gen_mux
+        generic map(
+            dataWidth => WORD_WIDTH
+        )
+        port map(
+            pi_sel => s_select_for_branchEX_MEM,
+            pi_first => s_sum_pc,
+            pi_second => s_branchAdder_EX_MEM,
+            po_res => s_bSel_mux
+        );
     -- end solution!!
 
     ---********************************************************************
@@ -197,7 +209,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_select_for_branch,
             pi_data1 => s_instruction_cache,
             po_data => s_instructionCacheRegisterIF_ID
         );
@@ -208,7 +220,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_select_for_branch,
             pi_data1 => s_pc_register,
             po_data => s_pc_to_pcPlus4_registerIF_ID
         );
@@ -242,7 +254,7 @@ begin
             po_storeImm => open,
             po_immediateImm => s_signextensionI_out,
             po_unsignedImm => s_signextensionU_out,
-            po_branchImm => open,
+            po_branchImm => s_signextensionB_out,
             po_jumpImm => s_signextensionJ_out
         );
 
@@ -265,7 +277,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_select_for_branch,
             pi_data1 => s_op1_registerfile_out,
             po_data => s_idExOp1
         );
@@ -276,7 +288,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_select_for_branch,
             pi_data1 => s_op2_registerfile_out,
             po_data => s_idExOp2
         );
@@ -295,7 +307,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_select_for_branch,
             pi_data1 => d,
             po_data => s_dAddr_ID_EX
         );
@@ -306,7 +318,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_select_for_branch,
             pi_data1 => s_signextension_out,
             po_data => s_id_ex_Immediat
         );
@@ -317,7 +329,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_select_for_branch,
             pi_data1 => s_pc_to_pcPlus4_registerIF_ID,
             po_data => s_pc_to_pcPlus4_registerID_EX
         );
@@ -385,7 +397,7 @@ begin
             po_CARRY_OUT => open
         );
 
-    s_select_for_branch <= s_controlWordRegisterEX_MEM.IS_BRANCH and (s_alu_zero xor s_controlWordRegisterEX_MEM.CMP_RESULT);
+    s_select_for_branch <= s_controlWordRegisterID_EX.IS_BRANCH and (s_alu_zero xor s_controlWordRegisterID_EX.CMP_RESULT);
     -- end solution!!
 
     ---********************************************************************
@@ -455,7 +467,14 @@ begin
             po_data => s_branchAdder_EX_MEM
         );
 
-    s_select_for_branchEX_MEM <= s_select_for_branch;
+    process (pi_clk, pi_rst)
+    begin
+        if (pi_rst) then
+            s_select_for_branchEX_MEM <= '0';
+        elsif rising_edge (pi_clk) then
+            s_select_for_branchEX_MEM <= s_select_for_branch;
+        end if;
+    end process;
     -- end solution!!
 
     ---********************************************************************
