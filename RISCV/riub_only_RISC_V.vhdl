@@ -90,6 +90,7 @@ architecture structure of riub_only_RISC_V is
 
     -- my_alu
     signal s_alu : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_alu_zero : std_logic := '0';
 
     -- ALU Output Register EX -> WB
     signal s_ex_mem_res : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
@@ -105,6 +106,7 @@ architecture structure of riub_only_RISC_V is
     signal s_signextensionI_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_signextensionU_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_signextensionJ_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_signextensionB_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- Immediat Select Mux
     signal s_immidatSel_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
@@ -117,6 +119,11 @@ architecture structure of riub_only_RISC_V is
 
     -- Program Counter Mux
     signal s_pcSel_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
+    -- B Select Mux
+    signal s_select_for_branch : std_logic := '0';
+    signal s_select_for_branchEX_MEM : std_logic := '0';
+    signal s_bSel_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- end solution!!
 begin
@@ -158,6 +165,7 @@ begin
             pi_second => s_ex_mem_res,
             po_res => s_pcSel_mux
         );
+
     -- end solution!!
 
     ---********************************************************************
@@ -243,8 +251,8 @@ begin
                           s_signextensionU_out when LUI_INS_OP | AUIPC_INS_OP,
                           s_signextensionI_out when I_INS_OP | JALR_INS_OP,
                           s_signextensionJ_out when JAL_INS_OP,
+                          s_signextensionB_out when B_INS_OP,
                           x"00000000" when others;
-    -- s_instructionin_decoder <= s_instructionCacheRegisterIF_ID;
     -- end solution!!
 
     ---********************************************************************
@@ -349,7 +357,8 @@ begin
             pi_OP2 => s_immidatSel_mux,
             pi_aluOp => s_controlWordRegisterID_EX.ALU_OP,
             po_aluOut => s_alu,
-            po_carryOut => open
+            po_carryOut => open,
+            po_zero => s_alu_zero
         );
 
     n_bit_full_adder_plus4 : entity work.my_gen_n_bit_full_adder
@@ -376,6 +385,7 @@ begin
             po_CARRY_OUT => open
         );
 
+    s_select_for_branch <= s_controlWordRegisterEX_MEM.IS_BRANCH and (s_alu_zero xor s_controlWordRegisterEX_MEM.CMP_RESULT);
     -- end solution!!
 
     ---********************************************************************
@@ -444,12 +454,15 @@ begin
             pi_data1 => s_sum_branch_adder,
             po_data => s_branchAdder_EX_MEM
         );
+
+    s_select_for_branchEX_MEM <= s_select_for_branch;
     -- end solution!!
 
     ---********************************************************************
     ---* memory phase
     ---********************************************************************
     -- begin solution:
+
     -- end solution!!
 
     ---********************************************************************
