@@ -157,7 +157,7 @@ begin
             po_data => s_pc_register
         );
 
-    gen_mux_pc_plus4 : entity work.gen_mux
+    gen_mux_pc_sel : entity work.gen_mux
         generic map(
             dataWidth => WORD_WIDTH
         )
