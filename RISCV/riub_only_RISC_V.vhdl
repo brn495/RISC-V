@@ -34,121 +34,83 @@ architecture structure of riub_only_RISC_V is
     -- signals
     -- begin solution:
 
-    -- n_bit_full_adder signals
-    signal s_carry_in_full_adder : std_logic := '0';
-    signal s_p_sum_out_full_adder : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    -- n_bit_full_adder 
+    signal s_sum_pc : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
-    -- n_bit_full_adder_plus4 signals
-    signal s_p_sum_out_full_adder_plus4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    -- n_bit_full_adder_plus4 
+    signal s_sum_pc_plus4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
+    -- PC Register
+    signal s_pc_register : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
+    --  PC Register to fullAdder for PC+4 IF->EX
+    signal s_pc_to_pcPlus4_registerIF_ID : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_pc_to_pcPlus4_registerID_EX : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- pipeline reg für pc_plus4 bis wb
-    signal s_dataout_mem_pc_plus4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dataout_wb_pc_plus4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    -- pc signals
-    signal s_datain_pc : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dataout_pc : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_pc_plus4_MEM_WB : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_pc_plus4_WB_MUX : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- instruction cache signals
-    signal s_addrin_instruction_cache : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_instruction_out_instruction_cache : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_instruction_cache : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- gen register signals
-    signal s_datain_gen_reg : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dataout_genreg : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_instructionCacheRegisterIF_ID : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
-    -- decoder signals
-    signal s_instructionin_decoder : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_controlWordout_decoder : controlWord := control_word_init;
+    ---------------------decoder----------------------
+    signal s_decoder : controlWord := control_word_init;
 
-    signal d : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-    signal s : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-    signal t : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal d : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0'); -- Write Address
+    signal s : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0'); -- Read Address 1
+    signal t : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0'); -- Read Address 2
 
-    -- control word register 1-3 signals
-    signal s_controlWordin_controlWordRegister1 : controlWord := control_word_init;
-    signal s_controlWordout_controlWordRegister1 : controlWord := control_word_init;
+    --------control word register für ID -> WB--------
+    signal s_controlWordRegisterID_EX : controlWord := control_word_init;
+    signal s_controlWordRegisterEX_MEM : controlWord := control_word_init;
+    signal s_controlWordRegisterMEM_WB : controlWord := control_word_init;
 
-    signal s_controlWordin_controlWordRegister2 : controlWord := control_word_init;
-    signal s_controlWordout_controlWordRegister2 : controlWord := control_word_init;
-
-    signal s_controlWordin_controlWordRegister3 : controlWord := control_word_init;
-    signal s_controlWordout_controlWordRegister3 : controlWord := control_word_init;
-
-    -- gen_register 1-3 signals
-    signal s_datain_gen_reg1 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dataout_genreg1 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-
-    signal s_datain_gen_reg2 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dataout_genreg2 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-
-    signal s_datain_gen_reg3 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dataout_genreg3 : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-
-    -- gen_register_pc 1-2 signals
-    signal s_datain_gen_reg_pc1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dataout_gen_reg_pc1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-
-    signal s_datain_gen_reg_pc2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dataout_gen_reg_pc2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    -- PipelineRegister for Address ID -> WB
+    signal s_dAddr_ID_EX : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s_dAddr_EX_MEM : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s_dAddr_MEM_WB : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
 
     -- register file signals
-    signal s_writeEnable_registerfile_in : std_logic := '0';
-    signal s_writeRegData_registerfile_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_readRegAddr1_registerfile_in : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-    signal s_readRegAddr2_registerfile_in : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-    signal s_writeRegAddr_registerfile_in : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
     signal s_op1_registerfile_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_op2_registerfile_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
-    -- id_ex_op1/op2 signals
-    signal s_datain_idExOp1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dataout_idExOp1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_datain_idExOp2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dataout_idExOp2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    -- id_ex_op1/op2 of ALU(Input Register)
+    signal s_idExOp1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_idExOp2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
-    -- my_alu signals
-    signal s_op1in_alu : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_op2in_alu : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_aluOp : std_logic_vector(ALU_OPCODE_WIDTH - 1 downto 0) := (others => '0');
-    signal s_aluout : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    -- my_alu
+    signal s_alu : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
-    -- ex_mem_res signals
-    signal s_ex_mem_res_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_ex_mem_res_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    -- ALU Output Register EX -> WB
+    signal s_ex_mem_res : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_mem_wb_res : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
-    -- ex_mem_Immidiant signals
-    signal s_ex_mem_Immidiant_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_ex_mem_Immidiant_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-
-    -- mem_web_res signals
-    signal s_mem_web_res_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_mem_web_res_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-
-    -- mem_web_Immidiant signals
-    signal s_mem_web_Immidiant_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_mem_web_Immidiant_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    -- Immidiant Pipeline Register ID -> WB
+    signal s_id_ex_Immediat : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_ex_mem_Immediat : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_mem_wb_Immediat : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- signextension signals
-    signal s_signextension_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_signextension_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_signextensionI_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_signextensionU_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_signextensionJ_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    -- id_ex_se signals
-    signal s_id_ex_se_in : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_id_ex_se_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
-    -- mux signals
-    signal s_dataout_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    -- Immediat Select Mux
+    signal s_immidatSel_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
-    -- mux_pc signals
-    signal s_dataout_mux_pc : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    -- A Select Mux
+    signal s_aSel_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
-    -- mux_wb signals
-    signal s_dataout_mux_wb : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    -- Write Back Mux
+    signal s_wbSelect_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
-    -- mux_pc_plus4 signals
-    signal s_dataout_mux_pc_plus4 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    -- Program Counter Mux
+    signal s_pcSel_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
 
     -- end solution!!
 begin
@@ -157,27 +119,27 @@ begin
     ---* program counter adder and pc-register
     ---********************************************************************
     -- begin solution:  
-    n_bit_full_adder : entity work.my_gen_n_bit_full_adder
+    PC : entity work.my_gen_n_bit_full_adder
         generic map(
             G_DATA_WIDTH => WORD_WIDTH
         )
         port map(
             pi_A => ADD_FOUR_TO_ADDRESS,
-            pi_B => s_dataout_pc,
-            pi_CARRY_IN => s_carry_in_full_adder,
-            po_SUM => s_p_sum_out_full_adder,
+            pi_B => s_pc_register,
+            pi_CARRY_IN => '0',
+            po_SUM => s_sum_pc,
             po_CARRY_OUT => open
         );
 
-    PC : entity work.PipelineRegister1
+    PC_register : entity work.PipelineRegister1
         generic map(
             registerWidth => WORD_WIDTH
         )
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_dataout_mux_pc_plus4,
-            po_data => s_dataout_pc
+            pi_data1 => s_pcSel_mux,
+            po_data => s_pc_register
         );
 
     gen_mux_pc_plus4 : entity work.gen_mux
@@ -185,10 +147,10 @@ begin
             dataWidth => WORD_WIDTH
         )
         port map(
-            pi_sel => s_controlWordout_controlWordRegister2.PC_SEL,
-            pi_first => s_p_sum_out_full_adder,
-            pi_second => s_ex_mem_res_out,
-            po_res => s_dataout_mux_pc_plus4
+            pi_sel => s_controlWordRegisterEX_MEM.PC_SEL,
+            pi_first => s_sum_pc,
+            pi_second => s_ex_mem_res,
+            po_res => s_pcSel_mux
         );
     -- end solution!!
 
@@ -201,23 +163,13 @@ begin
             adr_width => WORD_WIDTH
         )
         port map(
-            pi_adr => s_dataout_pc,
+            pi_adr => s_pc_register,
             pi_clk => not pi_clk,
             pi_rst => open,
             pi_instructionCache => pi_instruction,
-            po_instruction => s_instruction_out_instruction_cache
+            po_instruction => s_instruction_cache
         );
 
-    gen_reg_pc1 : entity work.PipelineRegister1
-        generic map(
-            registerWidth => WORD_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst,
-            pi_data1 => s_dataout_pc,
-            po_data => s_dataout_gen_reg_pc1
-        );
     -- end solution!!
 
     ---********************************************************************
@@ -232,20 +184,21 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_instruction_out_instruction_cache,
-            po_data => s_dataout_genreg
+            pi_data1 => s_instruction_cache,
+            po_data => s_instructionCacheRegisterIF_ID
         );
 
-    gen_reg_pc2 : entity work.PipelineRegister1
+    PC_to_PC_plus4_IF_ID : entity work.PipelineRegister1
         generic map(
             registerWidth => WORD_WIDTH
         )
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_dataout_gen_reg_pc1,
-            po_data => s_dataout_gen_reg_pc2
+            pi_data1 => s_pc_register,
+            po_data => s_pc_to_pcPlus4_registerIF_ID
         );
+
     --    s_datain_gen_reg <= s_instruction_out_pc;
     -- end solution!!
 
@@ -253,17 +206,17 @@ begin
     ---* decode phase
     ---********************************************************************
     -- begin solution:
-    d <= s_dataout_genreg(11 downto 7);
-    s <= s_dataout_genreg(19 downto 15);
-    t <= s_dataout_genreg(24 downto 20);
+    d <= s_instructionCacheRegisterIF_ID(11 downto 7);
+    s <= s_instructionCacheRegisterIF_ID(19 downto 15);
+    t <= s_instructionCacheRegisterIF_ID(24 downto 20);
 
     decoder : entity work.decoder
         generic map(
             word_width => WORD_WIDTH
         )
         port map(
-            pi_instruction => s_dataout_genreg,
-            po_controlWord => s_controlWordout_decoder
+            pi_instruction => s_instructionCacheRegisterIF_ID,
+            po_controlWord => s_decoder
         );
 
     signExtension : entity work.signExtension
@@ -271,7 +224,7 @@ begin
             word_width => WORD_WIDTH
         )
         port map(
-            pi_instr => s_dataout_genreg,
+            pi_instr => s_instructionCacheRegisterIF_ID,
             po_storeImm => open,
             po_immediateImm => s_signextensionI_out,
             po_unsignedImm => s_signextensionU_out,
@@ -279,13 +232,13 @@ begin
             po_jumpImm => s_signextensionJ_out
         );
 
-    with s_dataout_genreg(6 downto 0) select
+    with s_instructionCacheRegisterIF_ID(6 downto 0) select
     s_signextension_out <=
                           s_signextensionU_out when LUI_INS_OP | AUIPC_INS_OP,
                           s_signextensionI_out when I_INS_OP | JALR_INS_OP,
                           s_signextensionJ_out when JAL_INS_OP,
                           x"00000000" when others;
-    -- s_instructionin_decoder <= s_dataout_genreg;
+    -- s_instructionin_decoder <= s_instructionCacheRegisterIF_ID;
     -- end solution!!
 
     ---********************************************************************
@@ -300,7 +253,7 @@ begin
             pi_clk => pi_clk,
             pi_rst => pi_rst,
             pi_data1 => s_op1_registerfile_out,
-            po_data => s_dataout_idExOp1
+            po_data => s_idExOp1
         );
 
     id_ex_op2 : entity work.PipelineRegister1
@@ -311,18 +264,18 @@ begin
             pi_clk => pi_clk,
             pi_rst => pi_rst,
             pi_data1 => s_op2_registerfile_out,
-            po_data => s_dataout_idExOp2
+            po_data => s_idExOp2
         );
 
     ControlWordRegister1 : entity work.ControlWordRegister
         port map(
             pi_rst => pi_rst,
             pi_clk => pi_clk,
-            pi_controlWord => s_controlWordout_decoder,
-            po_controlWord => s_controlWordout_controlWordRegister1
+            pi_controlWord => s_decoder,
+            po_controlWord => s_controlWordRegisterID_EX
         );
 
-    gen_reg1 : entity work.PipelineRegister1
+    gen_reg1_dAddr : entity work.PipelineRegister1
         generic map(
             registerWidth => REG_ADR_WIDTH
         )
@@ -330,7 +283,7 @@ begin
             pi_clk => pi_clk,
             pi_rst => pi_rst,
             pi_data1 => d,
-            po_data => s_dataout_genreg1
+            po_data => s_dAddr_ID_EX
         );
 
     id_ex_se : entity work.PipelineRegister1
@@ -341,43 +294,55 @@ begin
             pi_clk => pi_clk,
             pi_rst => pi_rst,
             pi_data1 => s_signextension_out,
-            po_data => s_id_ex_se_out
+            po_data => s_id_ex_Immediat
         );
 
-    mux : entity work.gen_mux
+    PC_to_PC_plus4_ID_EX : entity work.PipelineRegister1
         generic map(
-            dataWidth => WORD_WIDTH
+            registerWidth => WORD_WIDTH
         )
         port map(
-            pi_sel => s_controlWordout_controlWordRegister1.I_IMM_SEL,
-            pi_first => s_dataout_idExOp2,
-            pi_second => s_id_ex_se_out,
-            po_res => s_dataout_mux
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_pc_to_pcPlus4_registerIF_ID,
+            po_data => s_pc_to_pcPlus4_registerID_EX
         );
 
-    mux_pc : entity work.gen_mux
-        generic map(
-            dataWidth => WORD_WIDTH
-        )
-        port map(
-            pi_sel => s_controlWordout_controlWordRegister1.A_SEL,
-            pi_first => s_dataout_idExOp1,
-            pi_second => s_dataout_gen_reg_pc2,
-            po_res => s_dataout_mux_pc
-        );
     -- end solution!!
 
     ---********************************************************************
     ---* execute phase
     ---********************************************************************
     -- begin solution:
+
+    ImmSel_mux : entity work.gen_mux
+        generic map(
+            dataWidth => WORD_WIDTH
+        )
+        port map(
+            pi_sel => s_controlWordRegisterID_EX.I_IMM_SEL,
+            pi_first => s_idExOp2,
+            pi_second => s_id_ex_Immediat,
+            po_res => s_immidatSel_mux
+        );
+
+    mux_a_sel : entity work.gen_mux
+        generic map(
+            dataWidth => WORD_WIDTH
+        )
+        port map(
+            pi_sel => s_controlWordRegisterID_EX.A_SEL,
+            pi_first => s_idExOp1,
+            pi_second => s_pc_to_pcPlus4_registerID_EX,
+            po_res => s_aSel_mux
+        );
     ALU : entity work.my_alu
         generic map(WORD_WIDTH, ALU_OPCODE_WIDTH)
         port map(
-            pi_OP1 => s_dataout_mux_pc,
-            pi_OP2 => s_dataout_mux,
-            pi_aluOp => s_controlWordout_controlWordRegister1.ALU_OP,
-            po_aluOut => s_aluout,
+            pi_OP1 => s_aSel_mux,
+            pi_OP2 => s_immidatSel_mux,
+            pi_aluOp => s_controlWordRegisterID_EX.ALU_OP,
+            po_aluOut => s_alu,
             po_carryOut => open
         );
 
@@ -387,9 +352,9 @@ begin
         )
         port map(
             pi_A => ADD_FOUR_TO_ADDRESS,
-            pi_B => s_dataout_gen_reg_pc2,
-            pi_CARRY_IN => s_carry_in_full_adder,
-            po_SUM => s_p_sum_out_full_adder_plus4,
+            pi_B => s_pc_to_pcPlus4_registerID_EX,
+            pi_CARRY_IN => '0',
+            po_SUM => s_sum_pc_plus4,
             po_CARRY_OUT => open
         );
 
@@ -403,19 +368,19 @@ begin
         port map(
             pi_rst => pi_rst,
             pi_clk => pi_clk,
-            pi_controlWord => s_controlWordout_controlWordRegister1,
-            po_controlWord => s_controlWordout_controlWordRegister2
+            pi_controlWord => s_controlWordRegisterID_EX,
+            po_controlWord => s_controlWordRegisterEX_MEM
         );
 
-    gen_reg2 : entity work.PipelineRegister1
+    gen_reg2_dAddr : entity work.PipelineRegister1
         generic map(
             registerWidth => REG_ADR_WIDTH
         )
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_dataout_genreg1,
-            po_data => s_dataout_genreg2
+            pi_data1 => s_dAddr_ID_EX,
+            po_data => s_dAddr_EX_MEM
         );
 
     ex_mem_res : entity work.PipelineRegister1
@@ -425,8 +390,8 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_aluout,
-            po_data => s_ex_mem_res_out
+            pi_data1 => s_alu,
+            po_data => s_ex_mem_res
         );
 
     ex_mem_Immidiant : entity work.PipelineRegister1
@@ -436,8 +401,8 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_id_ex_se_out,
-            po_data => s_ex_mem_Immidiant_out
+            pi_data1 => s_id_ex_Immediat,
+            po_data => s_ex_mem_Immediat
         );
 
     pc_plus4_mem : entity work.PipelineRegister1
@@ -447,8 +412,8 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_p_sum_out_full_adder_plus4,
-            po_data => s_dataout_mem_pc_plus4
+            pi_data1 => s_sum_pc_plus4,
+            po_data => s_pc_plus4_MEM_WB
         );
     -- end solution!!
 
@@ -466,36 +431,21 @@ begin
         port map(
             pi_rst => pi_rst,
             pi_clk => pi_clk,
-            pi_controlWord => s_controlWordout_controlWordRegister2,
-            po_controlWord => s_controlWordout_controlWordRegister3
+            pi_controlWord => s_controlWordRegisterEX_MEM,
+            po_controlWord => s_controlWordRegisterMEM_WB
         );
 
-    gen_reg3 : entity work.PipelineRegister1
+    gen_reg3_dAddr : entity work.PipelineRegister1
         generic map(
             registerWidth => REG_ADR_WIDTH
         )
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_dataout_genreg2,
-            po_data => s_dataout_genreg3
+            pi_data1 => s_dAddr_EX_MEM,
+            po_data => s_dAddr_MEM_WB
         );
 
-    pc_plus4_wb : entity work.PipelineRegister1
-        generic map(
-            registerWidth => WORD_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst,
-            pi_data1 => s_dataout_mem_pc_plus4,
-            po_data => s_dataout_wb_pc_plus4
-        );
-    -- end solution!!
-
-    ---********************************************************************
-    ---* write back phase
-    ---********************************************************************
     mem_wb_res : entity work.PipelineRegister1
         generic map(
             registerWidth => WORD_WIDTH
@@ -503,8 +453,8 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_ex_mem_res_out,
-            po_data => s_mem_web_res_out
+            pi_data1 => s_ex_mem_res,
+            po_data => s_mem_wb_res
         );
 
     mem_wb_Immidiant : entity work.PipelineRegister1
@@ -514,21 +464,37 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
-            pi_data1 => s_ex_mem_Immidiant_out,
-            po_data => s_mem_web_Immidiant_out
+            pi_data1 => s_ex_mem_Immediat,
+            po_data => s_mem_wb_Immediat
         );
 
+    pc_plus4_wb : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_pc_plus4_MEM_WB,
+            po_data => s_pc_plus4_WB_MUX
+        );
+
+    -- end solution!!
+
+    ---********************************************************************
+    ---* write back phase
+    ---********************************************************************
     gen_mux4to1_inst : entity work.gen_mux4to1
         generic map(
             dataWidth => WORD_WIDTH
         )
         port map(
-            pi_sel => s_controlWordout_controlWordRegister3.WB_SEL,
-            pi_first => s_mem_web_res_out,
-            pi_second => s_mem_web_Immidiant_out,
-            pi_third => s_dataout_wb_pc_plus4,
+            pi_sel => s_controlWordRegisterMEM_WB.WB_SEL,
+            pi_first => s_mem_wb_res,
+            pi_second => s_mem_wb_Immediat,
+            pi_third => s_pc_plus4_WB_MUX,
             pi_fourth => open,
-            po_res => s_dataout_mux_wb
+            po_res => s_wbSelect_mux
         );
     ---********************************************************************
     ---* register file (negative clock)
@@ -538,16 +504,15 @@ begin
         port map(
             pi_clk => not pi_clk,
             pi_rst => pi_rst,
-            pi_writeEnable => s_controlWordout_controlWordRegister3.REG_WRITE,
+            pi_writeEnable => s_controlWordRegisterMEM_WB.REG_WRITE,
             pi_readRegAddr1 => s,
             pi_readRegAddr2 => t,
-            pi_writeRegAddr => s_dataout_genreg3,
-            pi_writeRegData => s_dataout_mux_wb,
+            pi_writeRegAddr => s_dAddr_MEM_WB,
+            pi_writeRegData => s_wbSelect_mux,
             po_readRegData1 => s_op1_registerfile_out,
             po_readRegData2 => s_op2_registerfile_out,
             po_registerOut => po_registersOut
         );
 
-    s_writeRegData_registerfile_in <= s_mem_web_res_out;
     -- end solution!!
 end architecture;

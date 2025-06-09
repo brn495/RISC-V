@@ -69,7 +69,7 @@ begin
         (others => '0') when others;
 
     with po_aluOut select
-        po_zero <= '1' when "00000000",
+        po_zero <= '1' when x"00000000",
         '0' when others;
     po_carryOut <= s_cOut;
     -- end solution!!
