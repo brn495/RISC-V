@@ -34,7 +34,7 @@ begin
     variable v_rd  : integer := 6;
     variable v_expectedcontrolword : controlWord := CONTROL_WORD_INIT;
     variable func3 : std_logic_vector(2 downto 0)              := ADD_ALU_OP(ALU_OPCODE_WIDTH - 2 downto 0);
-    variable v_shamt : integer := 6;
+
   begin
 
     -- R-Format Decoding
@@ -236,36 +236,6 @@ begin
     v_expectedControlWord.IS_BRANCH := '1';
     v_expectedControlWord.CMP_RESULT  := '0';
     assert (s_controlword = v_expectedcontrolword) report "Error in BGEU decoding" severity error;
-
-
-    -- Immediate Shift Instructions (SLLI, SRLI, SRAI)
-
-    -- SLLI
-    s_instruction <= Asm2Std("SLLI", v_rd, v_rs1, v_shamt); wait for PERIOD / 2;
-    v_expectedControlWord := CONTROL_WORD_INIT;
-    v_expectedControlWord.I_IMM_SEL := '1';
-    v_expectedControlWord.ALU_OP := SLL_ALU_OP;
-    v_expectedControlWord.REG_WRITE := '1';
-    assert (s_controlword = v_expectedcontrolword)
-      report "Error in I-Format decoding (SLLI)" severity error;
-
-    -- SRLI
-    s_instruction <= Asm2Std("SRLI", v_rd, v_rs1, v_shamt); wait for PERIOD / 2;
-    v_expectedControlWord := CONTROL_WORD_INIT;
-    v_expectedControlWord.I_IMM_SEL := '1';
-    v_expectedControlWord.ALU_OP := SRL_ALU_OP;
-    v_expectedControlWord.REG_WRITE := '1';
-    assert (s_controlword = v_expectedcontrolword)
-      report "Error in I-Format decoding (SRLI)" severity error;
-
-    -- SRAI
-    s_instruction <= Asm2Std("SRAI", v_rd, v_rs1, v_shamt); wait for PERIOD / 2;
-    v_expectedControlWord := CONTROL_WORD_INIT;
-    v_expectedControlWord.I_IMM_SEL := '1';
-    v_expectedControlWord.ALU_OP := SRA_ALU_OP;
-    v_expectedControlWord.REG_WRITE := '1';
-    assert (s_controlword = v_expectedcontrolword)
-      report "Error in I-Format decoding (SRAI)" severity error;
 
 
 

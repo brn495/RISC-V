@@ -35,8 +35,11 @@ end entity signExtension;
 architecture arc of signExtension is
     -- begin solution:
 begin -- immediates rausholen und durch die resize Funktion an Ausgang in 32 bit ausgeben
+    with (pi_instr(30) & pi_instr(14 downto 12)) select
+    po_immediateImm <=
+                      std_logic_vector(resize(signed(pi_instr(24 downto 20)), 32)) when SLL_ALU_OP | SRL_ALU_OP | SRA_ALU_OP,
+                      std_logic_vector(resize(signed(pi_instr(31 downto 20)), 32)) when others;
     po_storeImm <= std_logic_vector(resize(signed(pi_instr(31 downto 25) & pi_instr(11 downto 7)), 32));
-    po_immediateImm <= std_logic_vector(resize(signed(pi_instr(31 downto 20)), 32));
     po_unsignedImm <= std_logic_vector(resize(signed(pi_instr(31 downto 12) & x"000"), 32));
     po_branchImm <= std_logic_vector(resize(signed(pi_instr(31) & pi_instr(7) & pi_instr(30 downto 25) & pi_instr(11 downto 8) & '0'), 32));
     po_jumpImm <= std_logic_vector(resize(signed(pi_instr(31) & pi_instr(19 downto 12) & pi_instr(20) & pi_instr(30 downto 21) & '0'), 32));
