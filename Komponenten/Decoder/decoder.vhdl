@@ -28,6 +28,7 @@ begin
     process (pi_instruction)
         variable v_insFormat : t_instruction_type := nullFormat; -- Variable anlegen
     begin
+        po_controlWord <= control_word_init;
         case pi_instruction(6 downto 0) is -- case um v_insFormat zu setzen
             when R_INS_OP =>
                 v_insFormat := rFormat;
@@ -35,16 +36,22 @@ begin
                 v_insFormat := iFormat;
             when LUI_INS_OP | AUIPC_INS_OP | JAL_INS_OP =>
                 v_insFormat := uFormat;
+            when B_INS_OP =>
+                v_insFormat := bFormat;
             when others =>
                 v_insFormat := nullFormat;
         end case;
 
         case v_insFormat is -- case um output, controlWord zu bestimmen
             when rFormat =>
+                po_controlWord.IS_BRANCH <= '0';
+
                 po_controlWord.ALU_OP <= pi_instruction(30) & pi_instruction(14 downto 12);
                 po_controlWord.I_IMM_SEL <= '0';
                 po_controlWord.REG_WRITE <= '1';
             when iFormat =>
+                po_controlWord.IS_BRANCH <= '0';
+
                 case pi_instruction(6 downto 0) is
                     when JALR_INS_OP =>
                         po_controlWord.ALU_OP <= ADD_ALU_OP;
@@ -59,6 +66,8 @@ begin
                         po_controlWord.REG_WRITE <= '1';
                 end case;
             when uFormat =>
+                po_controlWord.IS_BRANCH <= '0';
+
                 case pi_instruction(6 downto 0) is
                     when LUI_INS_OP =>
                         po_controlWord.ALU_OP <= ADD_ALU_OP;
@@ -83,6 +92,38 @@ begin
                         po_controlWord.PC_SEL <= '1';
                     when others =>
                         po_controlWord <= control_word_init;
+                end case;
+            when bFormat =>
+                po_controlWord.IS_BRANCH <= '1';
+
+                case pi_instruction(14 downto 12) is
+
+                    when FUNC3_BEQ =>
+                        po_controlWord.ALU_OP <= SUB_ALU_OP;
+                        po_controlWord.CMP_RESULT <= '0';
+
+                    when FUNC3_BNE =>
+                        po_controlWord.ALU_OP <= SUB_ALU_OP;
+                        po_controlWord.CMP_RESULT <= '1';
+
+                    when FUNC3_BLT =>
+                        po_controlWord.ALU_OP <= SLT_ALU_OP;
+                        po_controlWord.CMP_RESULT <= '1';
+
+                    when FUNC3_BGE =>
+                        po_controlWord.ALU_OP <= SLT_ALU_OP;
+                        po_controlWord.CMP_RESULT <= '0';
+
+                    when FUNC3_BLTU =>
+                        po_controlWord.ALU_OP <= SLTU_ALU_OP;
+                        po_controlWord.CMP_RESULT <= '1';
+
+                    when FUNC3_BGEU =>
+                        po_controlWord.ALU_OP <= SLTU_ALU_OP;
+                        po_controlWord.CMP_RESULT <= '0';
+
+                    when others =>
+                        po_controlWord.IS_BRANCH <= '0';
                 end case;
             when others =>
                 po_controlWord <= control_word_init;
