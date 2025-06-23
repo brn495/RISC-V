@@ -18,16 +18,17 @@ use ieee.numeric_std.all;
 use work.constant_package.all;
 use work.types.all;
 
-entity riub_only_RISC_V is
+entity riubs_only_RISC_V is
     port (
         pi_rst : in std_logic;
         pi_clk : in std_logic;
         pi_instruction : in memory := (others => (others => '0'));
-        po_registersOut : out registerMemory := (others => (others => '0'))
+        po_registersOut : out registerMemory := (others => (others => '0'));
+        po_debugdatamemory : out memory := (others => (others => '0'))
     );
-end entity riub_only_RISC_V;
+end entity riubs_only_RISC_V;
 
-architecture structure of riub_only_RISC_V is
+architecture structure of riubs_only_RISC_V is
 
     constant PERIOD : time := 10 ns;
     constant ADD_FOUR_TO_ADDRESS : std_logic_vector(WORD_WIDTH - 1 downto 0) := std_logic_vector(to_signed((4), WORD_WIDTH));
@@ -107,6 +108,13 @@ architecture structure of riub_only_RISC_V is
     signal s_signextensionU_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_signextensionJ_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_signextensionB_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_signextensionS_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+
+    -- Memory signals
+    signal s_mux_immSel_ex_mem : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0'); -- für pi_writedata
+
+    signal s_readdata_memory_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_debugdatamemory_out : memory := (others => (others => '0'));
 
     -- Immediat Select Mux
     signal s_immidatSel_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
@@ -251,7 +259,7 @@ begin
         )
         port map(
             pi_instr => s_instructionCacheRegisterIF_ID,
-            po_storeImm => open,
+            po_storeImm => s_signextensionS_out,
             po_immediateImm => s_signextensionI_out,
             po_unsignedImm => s_signextensionU_out,
             po_branchImm => s_signextensionB_out,
@@ -261,9 +269,10 @@ begin
     with s_instructionCacheRegisterIF_ID(6 downto 0) select
     s_signextension_out <=
                           s_signextensionU_out when LUI_INS_OP | AUIPC_INS_OP,
-                          s_signextensionI_out when I_INS_OP | JALR_INS_OP,
+                          s_signextensionI_out when I_INS_OP | JALR_INS_OP | L_INS_OP,
                           s_signextensionJ_out when JAL_INS_OP,
                           s_signextensionB_out when B_INS_OP,
+                          s_signextensionS_out when S_INS_OP,
                           x"00000000" when others;
     -- end solution!!
 
@@ -468,6 +477,17 @@ begin
             po_data => s_branchAdder_EX_MEM
         );
 
+    ImmSel_Mux_EX_MEM : entity work.PipelineRegister1
+        generic map(
+            registerWidth => WORD_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_idExOp2,
+            po_data => s_mux_immSel_ex_mem
+        );
+
     process (pi_clk, pi_rst)
     begin
         if (pi_rst) then
@@ -482,7 +502,21 @@ begin
     ---* memory phase
     ---********************************************************************
     -- begin solution:
-
+    data_memory : entity work.data_memory
+        generic map(
+            adr_width => adr_width
+        )
+        port map(
+            pi_adr => s_ex_mem_res,
+            pi_clk => not pi_clk,
+            pi_rst => pi_rst,
+            pi_ctrmem => s_controlWordRegisterEX_MEM.MEM_CTR,
+            pi_write => s_controlWordRegisterEX_MEM.MEM_WRITE,
+            pi_read => s_controlWordRegisterEX_MEM.MEM_READ,
+            pi_writedata => s_mux_immSel_ex_mem,
+            po_readdata => s_readdata_memory_out,
+            po_debugdatamemory => po_debugdatamemory
+        );
     -- end solution!!
 
     ---********************************************************************
@@ -555,7 +589,7 @@ begin
             pi_first => s_mem_wb_res,
             pi_second => s_mem_wb_Immediat,
             pi_third => s_pc_plus4_MEM_WB,
-            pi_fourth => open,
+            pi_fourth => s_readdata_memory_out,
             po_res => s_wbSelect_mux
         );
     ---********************************************************************
