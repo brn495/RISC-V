@@ -61,10 +61,33 @@ begin
                         po_controlWord.A_SEL <= '0';
                         po_controlWord.PC_SEL <= '1';
                     when others =>
-                        po_controlWord.ALU_OP <= pi_instruction(30) & pi_instruction(14 downto 12);
                         po_controlWord.I_IMM_SEL <= '1';
                         po_controlWord.REG_WRITE <= '1';
+
+                        -- Unterscheidung nach funct3 (Bits 14:12)
+                        case pi_instruction(14 downto 12) is
+                                -- ADDI
+                            when "000" =>
+                                po_controlWord.ALU_OP <= ADD_ALU_OP;
+
+                                -- SLLI
+                            when "001" =>
+                                if pi_instruction(31 downto 25) = "0000000" then
+                                    po_controlWord.ALU_OP <= SLL_ALU_OP;
+                                end if;
+
+                                -- SRLI / SRAI
+                            when "101" =>
+                                if pi_instruction(31 downto 25) = "0000000" then
+                                    po_controlWord.ALU_OP <= SRL_ALU_OP;
+                                else
+                                    po_controlWord.ALU_OP <= SRA_ALU_OP;
+                                end if;
+                            when others =>
+                                po_controlWord.ALU_OP <= pi_instruction(30) & pi_instruction(14 downto 12);
+                        end case;
                 end case;
+
             when uFormat =>
                 po_controlWord.IS_BRANCH <= '0';
 

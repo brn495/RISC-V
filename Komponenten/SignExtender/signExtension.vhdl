@@ -33,16 +33,12 @@ entity signExtension is
 end entity signExtension;
 
 architecture arc of signExtension is
-    -- Fürs i-immediate: 5 bit fürs shift oder 
-    signal s_imm : std_logic_vector(31 downto 0) := std_logic_vector(resize(signed(pi_instr(31 downto 20)), 32));
-    signal s_shamt : std_logic_vector(31 downto 0) := (26 downto 0 => '0') & pi_instr(24 downto 20);
-
     -- begin solution:
+
 begin -- immediates rausholen und durch die resize Funktion an Ausgang in 32 bit ausgeben
     with pi_instr(14 downto 12) select
-    po_immediateImm <=
-                      s_shamt when "101" | "001",
-                      s_imm when others;
+    po_immediateImm <=  (26 downto 0 => '0') & pi_instr(24 downto 20) when "001" | "101",
+                        std_logic_vector(resize(signed(pi_instr(31 downto 20)), 32)) when others;
     po_storeImm <= std_logic_vector(resize(signed(pi_instr(31 downto 25) & pi_instr(11 downto 7)), 32));
     po_unsignedImm <= std_logic_vector(resize(signed(pi_instr(31 downto 12) & x"000"), 32));
     po_branchImm <= std_logic_vector(resize(signed(pi_instr(31) & pi_instr(7) & pi_instr(30 downto 25) & pi_instr(11 downto 8) & '0'), 32));
