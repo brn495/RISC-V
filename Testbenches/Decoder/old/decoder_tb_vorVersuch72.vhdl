@@ -1,10 +1,3 @@
--- Laboratory RA solutions/versuch8
--- Sommersemester 25
--- Group Details
--- Lab Date:
--- 1. Participant First and Last Name: 
--- 2. Participant First and Last Name:
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -244,92 +237,6 @@ begin
     v_expectedControlWord.CMP_RESULT  := '0';
     assert (s_controlword = v_expectedcontrolword) report "Error in BGEU decoding" severity error;
 
-    -- LOAD-Format Decoding
-
-    -- LW
-    s_instruction <= Asm2Std("LW",v_rd,v_rs1,v_rs2); wait for PERIOD / 2;
-    v_expectedControlWord := CONTROL_WORD_INIT;
-    v_expectedControlWord.I_IMM_SEL := '1';
-    v_expectedControlWord.ALU_OP := ADD_ALU_OP;
-    v_expectedControlWord.WB_SEL := "11"; -- Memory to register
-    v_expectedControlWord.REG_WRITE := '1';
-    v_expectedControlWord.MEM_READ := '1';
-    v_expectedControlWord.MEM_CTR    := LW_OP;
-    assert (s_controlword = v_expectedcontrolword) report "Error in LW decoding" severity error;
-
-    -- LH
-    s_instruction <= Asm2Std("LH",v_rd,v_rs1,v_rs2); wait for PERIOD / 2;
-    v_expectedControlWord := CONTROL_WORD_INIT;
-    v_expectedControlWord.I_IMM_SEL := '1';
-    v_expectedControlWord.ALU_OP := ADD_ALU_OP;
-    v_expectedControlWord.WB_SEL := "11"; -- Memory to register
-    v_expectedControlWord.REG_WRITE := '1';
-    v_expectedControlWord.MEM_READ := '1';
-    v_expectedControlWord.MEM_CTR    := LH_OP;
-    assert (s_controlword = v_expectedcontrolword) report "Error in LH decoding" severity error;
-
-    -- LHU
-    s_instruction <= Asm2Std("LHU",v_rd,v_rs1,v_rs2); wait for PERIOD / 2;
-    v_expectedControlWord := CONTROL_WORD_INIT;
-    v_expectedControlWord.I_IMM_SEL := '1';
-    v_expectedControlWord.ALU_OP := ADD_ALU_OP;
-    v_expectedControlWord.WB_SEL := "11"; -- Memory to register
-    v_expectedControlWord.REG_WRITE := '1';
-    v_expectedControlWord.MEM_READ := '1';
-    v_expectedControlWord.MEM_CTR    := LHU_OP;
-    assert (s_controlword = v_expectedcontrolword) report "Error in LHU decoding" severity error;
-
-    -- LB
-    s_instruction <= Asm2Std("LB",v_rd,v_rs1,v_rs2); wait for PERIOD / 2;
-    v_expectedControlWord := CONTROL_WORD_INIT;
-    v_expectedControlWord.I_IMM_SEL := '1';
-    v_expectedControlWord.ALU_OP := ADD_ALU_OP;
-    v_expectedControlWord.WB_SEL := "11"; -- Memory to register
-    v_expectedControlWord.REG_WRITE := '1';
-    v_expectedControlWord.MEM_READ := '1';
-    v_expectedControlWord.MEM_CTR    := LB_OP;
-    assert (s_controlword = v_expectedcontrolword) report "Error in LB decoding" severity error;
-
-    -- LBU
-    s_instruction <= Asm2Std("LBU",v_rd,v_rs1,v_rs2); wait for PERIOD / 2;
-    v_expectedControlWord := CONTROL_WORD_INIT;
-    v_expectedControlWord.I_IMM_SEL := '1';
-    v_expectedControlWord.ALU_OP := ADD_ALU_OP;
-    v_expectedControlWord.WB_SEL := "11"; -- Memory to register
-    v_expectedControlWord.REG_WRITE := '1';
-    v_expectedControlWord.MEM_READ := '1';
-    v_expectedControlWord.MEM_CTR    := LBU_OP;
-    assert (s_controlword = v_expectedcontrolword) report "Error in LBU decoding" severity error;
-
-
-    -- STORE-Format Decoding
-
-    -- SW
-    s_instruction <= Asm2Std("SW",v_rd,v_rs1,v_rs2); wait for PERIOD / 2;
-    v_expectedControlWord := CONTROL_WORD_INIT;
-    v_expectedControlWord.I_IMM_SEL := '1';
-    v_expectedControlWord.ALU_OP := ADD_ALU_OP;
-    v_expectedControlWord.MEM_WRITE := '1';
-    v_expectedControlWord.MEM_CTR    := SW_OP;
-    assert (s_controlword = v_expectedcontrolword) report "Error in SW decoding" severity error;
-
-    -- SH
-    s_instruction <= Asm2Std("SH",v_rd,v_rs1,v_rs2); wait for PERIOD / 2;
-    v_expectedControlWord := CONTROL_WORD_INIT;
-    v_expectedControlWord.I_IMM_SEL := '1';
-    v_expectedControlWord.ALU_OP := ADD_ALU_OP;
-    v_expectedControlWord.MEM_WRITE := '1';
-    v_expectedControlWord.MEM_CTR    := SH_OP;
-    assert (s_controlword = v_expectedcontrolword) report "Error in SH decoding" severity error;
-
-    -- SB
-    s_instruction <= Asm2Std("SB",v_rd,v_rs1,v_rs2); wait for PERIOD / 2;
-    v_expectedControlWord := CONTROL_WORD_INIT;
-    v_expectedControlWord.I_IMM_SEL := '1';
-    v_expectedControlWord.ALU_OP := ADD_ALU_OP;
-    v_expectedControlWord.MEM_WRITE := '1';
-    v_expectedControlWord.MEM_CTR    := SB_OP;
-    assert (s_controlword = v_expectedcontrolword) report "Error in SB decoding" severity error;
 
 
 

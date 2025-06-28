@@ -1,8 +1,15 @@
+-- Laboratory RA solutions/versuch8
+-- Sommersemester 25
+-- Group Details
+-- Lab Date:
+-- 1. Participant First and Last Name: 
+-- 2. Participant First and Last Name:
+
 -- ========================================================================
 -- Author:       Marcel Rieß
 -- Last updated: 10.06.2025
--- Description:  RIUB-Only-RISC-V (incomplete RV32I implementation)
---               Supports only R-, I- and U-Instructions.
+-- Description:  RIUBS-Only-RISC-V (incomplete RV32I implementation)
+--               Supports only R-, I-, U-, B- and S-Instructions.
 -- ========================================================================
 
 LIBRARY ieee;
@@ -12,10 +19,10 @@ USE work.constant_package.ALL;
 USE work.types.ALL;
 USE work.util_asm_package.ALL;
 
-ENTITY riub_only_RISC_V_tb IS
+ENTITY riubs_only_RISC_V_tb IS
 END ENTITY;
 
-ARCHITECTURE structure OF riub_only_RISC_V_tb IS
+ARCHITECTURE structure OF riubs_only_RISC_V_tb IS
 
   CONSTANT PERIOD     : TIME := 10 ns;
   CONSTANT WITH_FLUSH : STD_LOGIC := '1';
@@ -26,6 +33,7 @@ ARCHITECTURE structure OF riub_only_RISC_V_tb IS
 
   SIGNAL s_registersOut     : registerMemory := (OTHERS => (OTHERS => '0'));
   SIGNAL s_instructions     : memory := (OTHERS => (OTHERS => '0'));
+  SIGNAL s_debugdatamemory     : memory := (OTHERS => (OTHERS => '0'));
 
   -- Registerprüfung
   PROCEDURE check_register(expected : INTEGER; reg_num : INTEGER; instr : STRING) IS
@@ -164,32 +172,61 @@ ARCHITECTURE structure OF riub_only_RISC_V_tb IS
       mem(48+49+35+3) := Asm2Std("ADDI", 1, 0, 10);
     end if;
     if v_test = 8 then
-  -- Ausgangswert setzen
-  mem(1) := Asm2Std("ADDI", 1, 0, 42);  -- x1 = 42
+      -- Ausgangswert setzen
+      mem(1) := Asm2Std("ADDI", 1, 0, 42);  -- x1 = 42
 
-  -- Shift-Tests
-  mem(5) := Asm2Std("SLLI", 5, 1, 1);   -- x5 = x1 << 1 = 84
-  mem(6) := Asm2Std("SLLI", 6, 1, 4);   -- x6 = x1 << 4 = 672
-  mem(7) := Asm2Std("SRLI", 7, 1, 1);   -- x7 = x1 >> 1 = 21 (logisch)
-  mem(8) := Asm2Std("SRLI", 8, 1, 4);   -- x8 = x1 >> 4 = 2
-  mem(9) := Asm2Std("SRAI", 9, 1, 1);   -- x9 = x1 >> 1 = 21 (arith.)
-  mem(10) := Asm2Std("SRAI", 10, 1, 4);  -- x10 = x1 >> 4 = 2
+      -- Shift-Tests
+      mem(5) := Asm2Std("SLLI", 5, 1, 1);   -- x5 = x1 << 1 = 84
+      mem(6) := Asm2Std("SLLI", 6, 1, 4);   -- x6 = x1 << 4 = 672
+      mem(7) := Asm2Std("SRLI", 7, 1, 1);   -- x7 = x1 >> 1 = 21 (logisch)
+      mem(8) := Asm2Std("SRLI", 8, 1, 4);   -- x8 = x1 >> 4 = 2
+      mem(9) := Asm2Std("SRAI", 9, 1, 1);   -- x9 = x1 >> 1 = 21 (arith.)
+      mem(10) := Asm2Std("SRAI", 10, 1, 4);  -- x10 = x1 >> 4 = 2
 
-  -- Optional: negative Werte testen
-  mem(11) := Asm2Std("ADDI", 1, 0, -8);   -- x1 = -8
-  mem(15) := Asm2Std("SRAI", 11, 1, 1);   -- x11 = -4 (arithmetischer Shift)
-end if;
+      -- Optional: negative Werte testen
+      mem(11) := Asm2Std("ADDI", 1, 0, -8);   -- x1 = -8
+      mem(15) := Asm2Std("SRAI", 11, 1, 1);   -- x11 = -4 (arithmetischer Shift)
+    end if;
+
+    if v_test = 9 then
+      -- Initialwerte vorbereiten
+      mem:=(OTHERS => (OTHERS => '0'));
+      mem(1)  := Asm2Std("ADDI", 1, 0, 100);  -- x1 = Adresse 100 (Basisadresse)
+      mem(2)  := Asm2Std("ADDI", 2, 0, 42);   -- x2 = Datenwert 42
+      mem(3)  := Asm2Std("ADDI", 3, 0, -1);   -- x3 = Datenwert -1 (0xFFFFFFFF)
+
+      -- STORE WORD
+      mem(7)  := Asm2Std("SW", 1, 2, 0);      -- Mem[100] = x2 (42)
+      -- LOAD WORD
+      mem(12)  := Asm2Std("LW",  4,1, 0);      -- x4 = Mem[100], sollte 42 sein
+
+      -- STORE BYTE
+      mem(13)  := Asm2Std("SB",  1,3, 4);      -- Mem[104] = x3 (nur LSB: 0xFF)
+      -- LOAD BYTE (signed)
+      mem(18)  := Asm2Std("LB",  5,1, 4);      -- x5 = Mem[104], sollte -1
+      -- LOAD BYTE (unsigned)
+      mem(19) := Asm2Std("LBU",  6,1, 4);     -- x6 = Mem[104], sollte 255
+
+      -- STORE HALFWORD
+      mem(20) := Asm2Std("SH", 1, 3, 8);      -- Mem[108..109] = x3 (nur LSB 16 Bit)
+      -- LOAD HALFWORD (signed)
+      mem(25) := Asm2Std("LH", 7, 1, 8);      -- x7 = Mem[108..109], sollte -1
+      -- LOAD HALFWORD (unsigned)
+      mem(26) := Asm2Std("LHU", 8, 1, 8);     -- x8 = Mem[108..109], sollte 65535
+    end if;
+
   END PROCEDURE;
 
 BEGIN
 
   -- DUT
-  riub_only_riscv : ENTITY work.riub_only_RISC_V
+  riubs_only_riscv : ENTITY work.riubs_only_RISC_V
     PORT MAP (
       pi_rst => s_rst,
       pi_clk => s_clk,
       pi_instruction => s_instructions,
-      po_registersOut => s_registersOut
+      po_registersOut => s_registersOut,
+      po_debugdatamemory => s_debugdatamemory
     );
 
   -- Taktgenerator
@@ -217,7 +254,7 @@ BEGIN
       WAIT UNTIL rising_edge(s_clk);
       cycle <= i;
     END LOOP;
-
+    REPORT "==   PASSED   ==";
     -- === Test 2: AUIPC ===
     REPORT "== TEST 2: AUIPC ==";
     test <= 2;
@@ -303,14 +340,28 @@ BEGIN
     REPORT "==   PASSED   ==";
     END IF;
 
-        REPORT "== TEST 8: Immediate Shifts==";
+    REPORT "== TEST 8: Immediate Shifts==";
     test <= 8;
     s_rst <= '1'; WAIT FOR PERIOD/2;
     s_rst <= '0'; WAIT FOR PERIOD/2;
     load_common_instructions(v_instr,test);
     s_instructions <= v_instr;
 
-    FOR i IN 1 TO 30 LOOP
+    FOR i IN 1 TO 35 LOOP
+      WAIT UNTIL rising_edge(s_clk);
+      cycle <= i;
+    END LOOP;
+    REPORT "==   PASSED   ==";
+    
+    -- === Test 9: LOAD/STORE ===
+    REPORT "== TEST 9: LOAD/STORE ==";
+    test <= 9;
+    s_rst <= '1'; WAIT FOR PERIOD/2;
+    s_rst <= '0'; WAIT FOR PERIOD/2;
+    load_common_instructions(v_instr,test);
+    s_instructions <= v_instr;
+
+    FOR i IN 1 TO 60 LOOP
       WAIT UNTIL rising_edge(s_clk);
       cycle <= i;
     END LOOP;
@@ -480,7 +531,26 @@ BEGIN
         when 20 => check_register(-4, 11, "SRAI");
         when others => null;
       end case;
-  end if;
+    end if;
+
+    IF test = 9 THEN
+       --     REPORT "Register " & INTEGER'image(7) &
+       -- " enthaelt " & INTEGER'image(to_integer(signed(s_registersOut(7))));
+        
+      case cycle is
+      -- Prüflogik für shift
+        WHEN  6 => check_register(100, 1, "ADDI (BaseAddr)");
+        WHEN  7 => check_register(42,  2, "ADDI (Value42)");
+        WHEN  8 => check_register(-1,  3, "ADDI (Value-1)");
+        WHEN 17 => check_register(42,  4, "LW (Load 42)");
+        WHEN 23 => check_register(-1,  5, "LB (Load -1 signed)");
+        WHEN 24 => check_register(255, 6, "LBU (Load 255 unsigned)");
+        WHEN 30 => check_register(-1,  7, "LH (Load -1 signed)");
+        WHEN 31 => check_register(65535,8, "LHU (Load 65535 unsigned)");
+        WHEN others => null;
+      END CASE;
+    END IF;
+
   END PROCESS;
 
 END ARCHITECTURE;

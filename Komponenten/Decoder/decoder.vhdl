@@ -32,23 +32,24 @@ begin
         case pi_instruction(6 downto 0) is -- case um v_insFormat zu setzen
             when R_INS_OP =>
                 v_insFormat := rFormat;
-            when I_INS_OP | JALR_INS_OP =>
+            when I_INS_OP | JALR_INS_OP | L_INS_OP =>
                 v_insFormat := iFormat;
             when LUI_INS_OP | AUIPC_INS_OP | JAL_INS_OP =>
                 v_insFormat := uFormat;
             when B_INS_OP =>
                 v_insFormat := bFormat;
+            when S_INS_OP =>
+                v_insFormat := sFormat;
             when others =>
                 v_insFormat := nullFormat;
         end case;
 
         case v_insFormat is -- case um output, controlWord zu bestimmen
             when rFormat =>
-                po_controlWord.IS_BRANCH <= '0';
-
                 po_controlWord.ALU_OP <= pi_instruction(30) & pi_instruction(14 downto 12);
                 po_controlWord.I_IMM_SEL <= '0';
                 po_controlWord.REG_WRITE <= '1';
+                po_controlWord.WB_SEL <= "00";
             when iFormat =>
                 po_controlWord.IS_BRANCH <= '0';
 
@@ -60,11 +61,41 @@ begin
                         po_controlWord.REG_WRITE <= '1';
                         po_controlWord.A_SEL <= '0';
                         po_controlWord.PC_SEL <= '1';
+                    when L_INS_OP =>
+                        po_controlWord.ALU_OP <= ADD_ALU_OP;
+                        po_controlWord.I_IMM_SEL <= '1';
+                        po_controlWord.MEM_READ <= '1';
+                        po_controlWord.REG_WRITE <= '1';
+                        po_controlWord.WB_SEL <= "11";
+                        po_controlWord.MEM_CTR <= pi_instruction(14 downto 12);
                     when others =>
-                        po_controlWord.ALU_OP <= pi_instruction(30) & pi_instruction(14 downto 12);
                         po_controlWord.I_IMM_SEL <= '1';
                         po_controlWord.REG_WRITE <= '1';
+
+                        -- Unterscheidung nach funct3 (Bits 14:12) wegen 30sten Bit bei ADDI
+                        case pi_instruction(14 downto 12) is
+                                -- ADDI
+                            when "000" =>
+                                po_controlWord.ALU_OP <= ADD_ALU_OP;
+
+                                -- SLLI
+                            when "001" =>
+                                if pi_instruction(31 downto 25) = "0000000" then
+                                    po_controlWord.ALU_OP <= SLL_ALU_OP;
+                                end if;
+
+                                -- SRLI / SRAI
+                            when "101" =>
+                                if pi_instruction(31 downto 25) = "0000000" then
+                                    po_controlWord.ALU_OP <= SRL_ALU_OP;
+                                else
+                                    po_controlWord.ALU_OP <= SRA_ALU_OP;
+                                end if;
+                            when others =>
+                                po_controlWord.ALU_OP <= '0' & pi_instruction(14 downto 12);
+                        end case;
                 end case;
+
             when uFormat =>
                 po_controlWord.IS_BRANCH <= '0';
 
@@ -125,6 +156,11 @@ begin
                     when others =>
                         po_controlWord.IS_BRANCH <= '0';
                 end case;
+            when sFormat =>
+                po_controlWord.ALU_OP <= ADD_ALU_OP;
+                po_controlWord.I_IMM_SEL <= '1';
+                po_controlWord.MEM_WRITE <= '1';
+                po_controlWord.MEM_CTR <= pi_instruction(14 downto 12);
             when others =>
                 po_controlWord <= control_word_init;
         end case;
