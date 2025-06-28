@@ -135,17 +135,32 @@ architecture structure of riubs_bp_only_RISC_V is
     -- Flush (einfach B_SEL (auch PC_SEL) und den Reset mir OR verküpfen, aus EX_MEM)
     signal s_flush : std_logic := '0';
 
-    -- Letzten 3 Addressen fürs Forwarding (Aus EX, MEM & WB)
-    signal s_dAdrEX : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dAdrMEM : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
-    signal s_dAdrWB : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    -- Zurzeitige Instruktions Addressen Pipeline fürs Forwarding
+    signal s_jetzige_rs1Adr_ID_EX : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s_jetzige_rs2Adr_ID_EX : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+
+    -- Letzten 3 Addressen Pipelines fürs Forwarding --
+    -- EX -> EX
+    signal s_EX_EX_rdAdrID_EX : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s_EX_EX_rdAdrEX_EX : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+
+    -- MEM -> EX
+    signal s_MEM_EX_rdAdrID_EX : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s_MEM_EX_rdAdrEX_MEM : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s_MEM_EX_rdAdrMEM_EX : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+
+    -- WB -> EX
+    signal s_WB_EX_rdAdrID_EX : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s_WB_EX_rdAdrEX_MEM : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s_WB_EX_rdAdrMEM_WB : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s_WB_EX_rdAdrWB_EX : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
 
     -- Forwarding MUX für OP1/2 der ALU
     signal s_forwardingMUX_op1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_forwardingMUX_sel_op1 :std_logic_vector(2 - 1 downto 0) := "00";
-    
+    signal s_forwardingMUX_sel_op1 : std_logic_vector(2 - 1 downto 0) := "00";
+
     signal s_forwardingMUX_op2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_forwardingMUX_sel_op2 :std_logic_vector(2 - 1 downto 0) := "00";
+    signal s_forwardingMUX_sel_op2 : std_logic_vector(2 - 1 downto 0) := "00";
 
     -- end solution!!
 begin
@@ -357,6 +372,139 @@ begin
 
     s_flush <= s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL;
     -- end solution!!
+
+    ---********************************************************************
+    ---* Forwarding (Unter anderem Pipelining der einzelnen Addressen)
+    ---********************************************************************
+    -- begin solution:
+
+    -- Jetzige Zieladdresse
+    Jetzige_rs1AdrID_EX : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s,
+            po_data => s_jetzige_rs1Adr_ID_EX
+        );
+
+    Jetzige_rs2AdrID_EX : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => t,
+            po_data => s_jetzige_rs2Adr_ID_EX
+        );
+    -- EX -> EX
+
+    EX_EX_rdAdrID_EX : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_dAddr_MEM_WB,
+            po_data => s_EX_EX_rdAdrID_EX
+        );
+
+    EX_EX_rdAdrEX_EX : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_EX_EX_rdAdrID_EX,
+            po_data => s_EX_EX_rdAdrEX_EX
+        );
+
+    -- MEM -> EX
+
+    MEM_EX_rdAdrID_EX : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_dAddr_MEM_WB,
+            po_data => s_MEM_EX_rdAdrID_EX
+        );
+
+    MEM_EX_rdAdrEX_MEM : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_MEM_EX_rdAdrID_EX,
+            po_data => s_MEM_EX_rdAdrEX_MEM
+        );
+
+    MEM_EX_rdAdrMEM_EX : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_MEM_EX_rdAdrEX_MEM,
+            po_data => s_MEM_EX_rdAdrMEM_EX
+        );
+
+    -- WB -> EX
+
+    WB_EX_rdAdrID_EX : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_dAddr_MEM_WB,
+            po_data => s_WB_EX_rdAdrID_EX
+        );
+
+    WB_EX_rdAdrEX_MEM : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_WB_EX_rdAdrID_EX,
+            po_data => s_WB_EX_rdAdrEX_MEM
+        );
+
+    WB_EX_rdAdrMEM_WB : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_WB_EX_rdAdrEX_MEM,
+            po_data => s_WB_EX_rdAdrMEM_WB
+        );
+
+    WB_EX_rdAdrWB_EX : entity work.PipelineRegister1
+        generic map(
+            registerWidth => REG_ADR_WIDTH
+        )
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_WB_EX_rdAdrMEM_WB,
+            po_data => s_WB_EX_rdAdrWB_EX
+        );
+    -- end solution
 
     ---********************************************************************
     ---* execute phase
