@@ -504,8 +504,31 @@ begin
             pi_data1 => s_WB_EX_rdAdrMEM_WB,
             po_data => s_WB_EX_rdAdrWB_EX
         );
-    -- end solution
 
+    -- Select Logik für die rs1/rs2 Multiplexer
+    s_forwardingMUX_sel_op1 <= "01" when (s_jetzige_rs1Adr_ID_EX = s_EX_EX_rdAdrEX_EX) else
+                               "10" when (s_jetzige_rs1Adr_ID_EX = s_MEM_EX_rdAdrMEM_EX) else
+                               "11" when (s_jetzige_rs1Adr_ID_EX = s_WB_EX_rdAdrWB_EX) else
+                               "00";
+
+    s_forwardingMUX_sel_op2 <= "01" when (s_jetzige_rs2Adr_ID_EX = s_EX_EX_rdAdrEX_EX) else
+                               "10" when (s_jetzige_rs2Adr_ID_EX = s_MEM_EX_rdAdrMEM_EX) else
+                               "11" when (s_jetzige_rs2Adr_ID_EX = s_WB_EX_rdAdrWB_EX) else
+                               "00";
+    -- MUX für rs1
+    rs1_MUX : entity work.gen_mux4to1
+        generic map(
+            dataWidth => WORD_WIDTH
+        )
+        port map(
+            pi_sel => pi_sel,
+            pi_first => pi_first,
+            pi_second => pi_second,
+            pi_third => pi_third,
+            pi_fourth => pi_fourth,
+            po_res => po_res
+        );
+    -- end solution
     ---********************************************************************
     ---* execute phase
     ---********************************************************************
