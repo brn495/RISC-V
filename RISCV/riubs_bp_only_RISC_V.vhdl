@@ -114,7 +114,6 @@ architecture structure of riubs_bp_only_RISC_V is
     signal s_mux_immSel_ex_mem : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0'); -- für pi_writedata
 
     signal s_readdata_memory_out : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_debugdatamemory_out : memory := (others => (others => '0'));
 
     -- Immediat Select Mux
     signal s_immidatSel_mux : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
@@ -135,6 +134,19 @@ architecture structure of riubs_bp_only_RISC_V is
 
     -- Flush (einfach B_SEL (auch PC_SEL) und den Reset mir OR verküpfen, aus EX_MEM)
     signal s_flush : std_logic := '0';
+
+    -- Letzten 3 Addressen fürs Forwarding (Aus EX, MEM & WB)
+    signal s_dAdrEX : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s_dAdrMEM : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+    signal s_dAdrWB : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
+
+    -- Forwarding MUX für OP1/2 der ALU
+    signal s_forwardingMUX_op1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_forwardingMUX_sel_op1 :std_logic_vector(2 - 1 downto 0) := "00";
+    
+    signal s_forwardingMUX_op2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_forwardingMUX_sel_op2 :std_logic_vector(2 - 1 downto 0) := "00";
+
     -- end solution!!
 begin
 
