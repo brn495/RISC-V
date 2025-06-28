@@ -62,7 +62,7 @@ begin
                         po_controlWord.A_SEL <= '0';
                         po_controlWord.PC_SEL <= '1';
                     when L_INS_OP =>
-                        po_controlWord.ALU_OP <= (others => '0');
+                        po_controlWord.ALU_OP <= ADD_ALU_OP;
                         po_controlWord.I_IMM_SEL <= '1';
                         po_controlWord.MEM_READ <= '1';
                         po_controlWord.REG_WRITE <= '1';
@@ -72,7 +72,7 @@ begin
                         po_controlWord.I_IMM_SEL <= '1';
                         po_controlWord.REG_WRITE <= '1';
 
-                        -- Unterscheidung nach funct3 (Bits 14:12)
+                        -- Unterscheidung nach funct3 (Bits 14:12) wegen 30sten Bit bei ADDI
                         case pi_instruction(14 downto 12) is
                                 -- ADDI
                             when "000" =>
@@ -92,7 +92,7 @@ begin
                                     po_controlWord.ALU_OP <= SRA_ALU_OP;
                                 end if;
                             when others =>
-                                po_controlWord.ALU_OP <= pi_instruction(30) & pi_instruction(14 downto 12);
+                                po_controlWord.ALU_OP <= '0' & pi_instruction(14 downto 12);
                         end case;
                 end case;
 
