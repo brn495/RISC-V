@@ -521,12 +521,25 @@ begin
             dataWidth => WORD_WIDTH
         )
         port map(
-            pi_sel => pi_sel,
-            pi_first => pi_first,
-            pi_second => pi_second,
-            pi_third => pi_third,
-            pi_fourth => pi_fourth,
-            po_res => po_res
+            pi_sel => s_forwardingMUX_sel_op1,
+            pi_first => s_idExOp1,
+            pi_second => s_alu, -- Ausgang aus der ALU
+            pi_third => s_readdata_memory_out, -- Ausgang aus dem Data Memory
+            pi_fourth => s_wbSelect_mux, -- Aus dem WB-MUX?????
+            po_res => s_forwardingMUX_op1
+        );
+
+    rs2_MUX : entity work.gen_mux4to1
+        generic map(
+            dataWidth => WORD_WIDTH
+        )
+        port map(
+            pi_sel => s_forwardingMUX_sel_op2,
+            pi_first => s_idExOp2,
+            pi_second => s_alu,
+            pi_third => s_readdata_memory_out,
+            pi_fourth => s_wbSelect_mux,
+            po_res => s_forwardingMUX_op2
         );
     -- end solution
     ---********************************************************************
@@ -540,7 +553,7 @@ begin
         )
         port map(
             pi_sel => s_controlWordRegisterID_EX.I_IMM_SEL,
-            pi_first => s_idExOp2,
+            pi_first => s_forwardingMUX_op2,
             pi_second => s_id_ex_Immediat,
             po_res => s_immidatSel_mux
         );
@@ -551,7 +564,7 @@ begin
         )
         port map(
             pi_sel => s_controlWordRegisterID_EX.A_SEL,
-            pi_first => s_idExOp1,
+            pi_first => s_forwardingMUX_op1,
             pi_second => s_pc_to_pcPlus4_registerID_EX,
             po_res => s_aSel_mux
         );
