@@ -4,8 +4,7 @@
 -- Lab Date: 22. Januar 2025
 -- 1. Participant First and  Last Name: Baran Sönmez
 -- 2. Participant First and Last Name: Mashal Khan
- 
- 
+
 -- coding conventions
 -- g_<name> Generics
 -- p_<name> Ports
@@ -19,8 +18,8 @@ use ieee.std_logic_1164.all;
 entity my_full_adder is
     port (
         -- begin solution:
-        pi_A, pi_B, pi_CARRY_IN  : in STD_LOGIC;
-        po_SUM, po_CARRY_OUT    : out STD_LOGIC
+        pi_A, pi_B, pi_CARRY_IN : in std_logic := '0';
+        po_SUM, po_CARRY_OUT : out std_logic := '0'
         -- end solution!!
     );
 end my_full_adder;
@@ -30,10 +29,10 @@ end my_full_adder;
 
 -- structure
 architecture structure of my_full_adder is
--- begin solution:
-signal s_SUM, s_CARRYA, s_CARRYB: STD_LOGIC := '0';
-begin 
-    Halfadder1: entity work.my_half_adder(dataflow)
+    -- begin solution:
+    signal s_SUM, s_CARRYA, s_CARRYB : std_logic := '0';
+begin
+    Halfadder1 : entity work.my_half_adder(dataflow)
         port map(
             pi_A => pi_A,
             pi_B => pi_B,
@@ -41,7 +40,7 @@ begin
             po_CARRY_OUT => s_CARRYA
         );
 
-    Halfadder2: entity work.my_half_adder(dataflow)
+    Halfadder2 : entity work.my_half_adder(dataflow)
         port map(
             pi_A => s_SUM,
             pi_B => pi_CARRY_IN,
@@ -49,6 +48,6 @@ begin
             po_CARRY_OUT => s_CARRYB
         );
 
-    po_CARRY_OUT <= (s_CARRYA NAND s_CARRYA) NAND (s_CARRYB NAND s_CARRYB);
--- end solution!!
+    po_CARRY_OUT <= (s_CARRYA nand s_CARRYA) nand (s_CARRYB nand s_CARRYB);
+    -- end solution!!
 end structure;

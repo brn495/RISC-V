@@ -22,6 +22,6 @@ ghdl -a --std=08 ../../Komponenten/Decoder/decoder.vhdl
 ghdl -a --std=08 ../../Komponenten/Cache/instruction_cache.vhdl
 ghdl -a --std=08 ../../Komponenten/Register/controlwordregister.vhdl
 ghdl -a --std=08 ../../Komponenten/DataMemory/data_memory.vhdl
-ghdl -a --std=08 ../../RISCV/riubs_only_RISC_V.vhdl
-ghdl -a --std=08 ../../Testbenches/RISCV/riubs_only_RISC_V_tb.vhdl
-ghdl -r --std=08 riubs_only_RISC_V_tb --vcd=riubs_only_RISC_V_tb.vcd
+ghdl -a --std=08 ../../RISCV/riubs_bp_only_RISC_V.vhdl
+ghdl -a --std=08 ../../Testbenches/RISCV/riubs_only_RISC_V_tb2.vhdl
+ghdl -r --std=08 riubs_only_RISC_V_tb2 --vcd=riubs_only_RISC_V_tb2.vcd

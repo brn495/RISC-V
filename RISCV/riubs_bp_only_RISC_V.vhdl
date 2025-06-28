@@ -157,10 +157,10 @@ architecture structure of riubs_bp_only_RISC_V is
 
     -- Forwarding MUX für OP1/2 der ALU
     signal s_forwardingMUX_op1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_forwardingMUX_sel_op1 : std_logic_vector(2 - 1 downto 0) := "00";
+    signal s_forwardingMUX_sel_op1 : std_logic_vector(1 downto 0) := "00";
 
     signal s_forwardingMUX_op2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_forwardingMUX_sel_op2 : std_logic_vector(2 - 1 downto 0) := "00";
+    signal s_forwardingMUX_sel_op2 : std_logic_vector(1 downto 0) := "00";
 
     -- end solution!!
 begin
@@ -226,7 +226,7 @@ begin
         port map(
             pi_adr => s_pc_register,
             pi_clk => not pi_clk,
-            pi_rst => open,
+            pi_rst => pi_rst,
             pi_instructionCache => pi_instruction,
             po_instruction => s_instruction_cache
         );
@@ -385,7 +385,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s,
             po_data => s_jetzige_rs1Adr_ID_EX
         );
@@ -396,7 +396,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => t,
             po_data => s_jetzige_rs2Adr_ID_EX
         );
@@ -408,7 +408,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_dAddr_MEM_WB,
             po_data => s_EX_EX_rdAdrID_EX
         );
@@ -419,7 +419,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_EX_EX_rdAdrID_EX,
             po_data => s_EX_EX_rdAdrEX_EX
         );
@@ -432,7 +432,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_dAddr_MEM_WB,
             po_data => s_MEM_EX_rdAdrID_EX
         );
@@ -443,7 +443,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_MEM_EX_rdAdrID_EX,
             po_data => s_MEM_EX_rdAdrEX_MEM
         );
@@ -454,7 +454,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_MEM_EX_rdAdrEX_MEM,
             po_data => s_MEM_EX_rdAdrMEM_EX
         );
@@ -467,7 +467,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_dAddr_MEM_WB,
             po_data => s_WB_EX_rdAdrID_EX
         );
@@ -478,7 +478,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_WB_EX_rdAdrID_EX,
             po_data => s_WB_EX_rdAdrEX_MEM
         );
@@ -489,7 +489,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_WB_EX_rdAdrEX_MEM,
             po_data => s_WB_EX_rdAdrMEM_WB
         );
@@ -500,7 +500,7 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst,
+            pi_rst => pi_rst or s_flush,
             pi_data1 => s_WB_EX_rdAdrMEM_WB,
             po_data => s_WB_EX_rdAdrWB_EX
         );
