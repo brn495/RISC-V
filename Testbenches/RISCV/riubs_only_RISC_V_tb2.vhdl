@@ -227,7 +227,7 @@ end if;
 BEGIN
 
   -- DUT
-  riubs_bp_only_RISC_V : ENTITY work.riubs_bp_only_RISC_V
+  riubs_only_RISC_V : ENTITY work.riubs_only_RISC_V
     PORT MAP (
       pi_rst => s_rst,
       pi_clk => s_clk,

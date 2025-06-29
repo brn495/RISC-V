@@ -135,13 +135,16 @@ architecture structure of riubs_only_RISC_V is
 
     -- Flush (einfach B_SEL (auch PC_SEL) und den Reset mir OR verküpfen, aus EX_MEM)
     signal s_flush : std_logic := '0';
-    -- end solution!!
+
+    -- Signal Registerfile
+    signal s_registerfile : registerMemory := (others => (others => '0'));
+
 
     -- Quellregisteradresse 1 fürs Forwarding 
-    signal s_rs1Adr_ID : std_logic_vector(REG_ADR_WIDTH -1 downto 0); 
+    signal s_rs1AdrID : std_logic_vector(REG_ADR_WIDTH -1 downto 0); 
 
     -- Quellregisteradresse 2 fürs Forwarding
-    signal s_rs2Adr_ID : std_logic_vector(REG_ADR_WIDTH -1 downto 0);
+    signal s_rs2AdrID : std_logic_vector(REG_ADR_WIDTH -1 downto 0);
 
     -- Signal für das erste MUX Steuersignal, bestimmt Quelle für ALU operand 1
     signal s_byp_rs1_sel : std_logic_vector(1 downto 0);
@@ -155,21 +158,13 @@ architecture structure of riubs_only_RISC_V is
     --Signal weitergelieteter Wert für rs2 (MEM), gibt den richtigen Wert aus MEM zurück 
     signal s_byp_rs2_MEM : std_logic_vector (WORD_WIDTH -1 downto 0);
 
+     -- end solution!!
+
     ---********************************************************************
     ---* program counter adder and pc-register
     ---********************************************************************
     -- begin solution:  
-    PC : entity work.my_gen_n_bit_full_adder
-        generic map(
-            G_DATA_WIDTH => WORD_WIDTH
-        )
-        port map(
-            pi_A => ADD_FOUR_TO_ADDRESS,
-            pi_B => s_pc_register,
-            pi_CARRY_IN => '0',
-            po_SUM => s_sum_pc,
-            po_CARRY_OUT => open
-        );
+    begin 
 
     PC_register : entity work.PipelineRegister1
         generic map(
@@ -261,6 +256,7 @@ architecture structure of riubs_only_RISC_V is
     s <= s_instructionCacheRegisterIF_ID(19 downto 15);
     t <= s_instructionCacheRegisterIF_ID(24 downto 20);
 
+
     decoder : entity work.decoder
         generic map(
             word_width => WORD_WIDTH
@@ -283,6 +279,21 @@ architecture structure of riubs_only_RISC_V is
             po_jumpImm => s_signextensionJ_out
         );
 
+        -- Neue Forwarding-Adressen
+        s_rs1AdrID <= s_instructionCacheRegisterIF_ID(19 downto 15);
+        s_rs2AdrID <= s_instructionCacheRegisterIF_ID(24 downto 20);
+
+-- Selektorlogik für Forwarding
+        s_byp_rs1_sel <= "01" when (s_rs1AdrID = s_dAddr_ID_EX) else
+                         "10" when (s_rs1AdrID = s_dAddr_EX_MEM) else
+                         "11" when (s_rs1AdrID = s_dAddr_MEM_WB) else
+                         "00";
+
+        s_byp_rs2_sel <= "01" when (s_rs2AdrID = s_dAddr_ID_EX) else
+                         "10" when (s_rs2AdrID = s_dAddr_EX_MEM) else
+                         "11" when (s_rs2AdrID = s_dAddr_MEM_WB) else
+                         "00";
+
     with s_instructionCacheRegisterIF_ID(6 downto 0) select
     s_signextension_out <=
                           s_signextensionU_out when LUI_INS_OP | AUIPC_INS_OP,
@@ -297,27 +308,30 @@ architecture structure of riubs_only_RISC_V is
     ---* Pipeline-Register (ID -> EX) 
     ---********************************************************************
     -- begin solution: 
-    id_ex_op1 : entity work.PipelineRegister1
-        generic map(
-            WORD_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_op1_registerfile_out,
-            po_data => s_idExOp1
-        );
+-- Forwarding-MUX für Operand 1
+aluOp1_mux : entity work.gen_mux4to1
+    generic map (dataWidth => WORD_WIDTH)
+    port map (
+        pi_sel    => s_byp_rs1_sel,
+        pi_first  => s_op1_registerfile_out,
+        pi_second => s_alu,
+        pi_third  => s_byp_rs1_MEM,
+        pi_fourth => s_wbSelect_mux,
+        po_res    => s_idExOp1
+    );
 
-    id_ex_op2 : entity work.PipelineRegister1
-        generic map(
-            WORD_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_op2_registerfile_out,
-            po_data => s_idExOp2
-        );
+-- Forwarding-MUX für Operand 2
+aluOp2_mux : entity work.gen_mux4to1
+    generic map (dataWidth => WORD_WIDTH)
+    port map (
+        pi_sel    => s_byp_rs2_sel,
+        pi_first  => s_op2_registerfile_out,
+        pi_second => s_alu,
+        pi_third  => s_byp_rs2_MEM,
+        pi_fourth => s_wbSelect_mux,
+        po_res    => s_idExOp2
+    );
+
 
     ControlWordRegister1 : entity work.ControlWordRegister
         port map(
@@ -515,6 +529,15 @@ architecture structure of riubs_only_RISC_V is
     end process;
     -- end solution!!
 
+    -- Forwarding-Werte für MEM-Phase
+s_byp_rs1_MEM <= s_readdata_memory_out when (s_rs1AdrID = s_dAddr_EX_MEM) and
+                                         (s_controlWordRegisterEX_MEM.MEM_READ = '1')
+                else s_ex_mem_res;
+
+s_byp_rs2_MEM <= s_readdata_memory_out when (s_rs2AdrID = s_dAddr_EX_MEM) and
+                                         (s_controlWordRegisterEX_MEM.MEM_READ = '1')
+                else s_ex_mem_res;
+
     ---********************************************************************
     ---* memory phase
     ---********************************************************************
@@ -626,6 +649,18 @@ architecture structure of riubs_only_RISC_V is
             po_readRegData2 => s_op2_registerfile_out,
             po_registerOut => po_registersOut
         );
+
+    process (pi_clk)
+     begin
+      if rising_edge(pi_clk) then
+        if s_controlWordRegisterMEM_WB.REG_WRITE = '1' and s_dAddr_MEM_WB /= "00000" then
+          s_registerfile(to_integer(unsigned(s_dAddr_MEM_WB))) <= s_wbSelect_mux;
+        end if;
+      end if;
+    end process;
+
+  -- Ausgabe des Registerfiles an den Testbench-Port
+  po_registersOut <= s_registerfile;
 
     -- end solution!!
 end architecture;
