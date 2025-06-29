@@ -384,163 +384,16 @@ begin
     ---********************************************************************
     -- begin solution:
 
-    -- Jetzige Zieladdresse
-    Jetzige_rs1AdrID_EX : entity work.PipelineRegister1
-        generic map(
-            registerWidth => REG_ADR_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s,
-            po_data => s_jetzige_rs1Adr_ID_EX
-        );
-
-    Jetzige_rs2AdrID_EX : entity work.PipelineRegister1
-        generic map(
-            registerWidth => REG_ADR_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => t,
-            po_data => s_jetzige_rs2Adr_ID_EX
-        );
-    -- EX -> EX
-
-    EX_EX_rdAdrID_EX : entity work.PipelineRegister1
-        generic map(
-            registerWidth => REG_ADR_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_dAddr_MEM_WB,
-            po_data => s_EX_EX_rdAdrID_EX
-        );
-
-    EX_EX_rdAdrEX_EX : entity work.PipelineRegister1
-        generic map(
-            registerWidth => REG_ADR_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_EX_EX_rdAdrID_EX,
-            po_data => s_EX_EX_rdAdrEX_EX
-        );
-
-    -- MEM -> EX
-
-    MEM_EX_rdAdrID_EX : entity work.PipelineRegister1
-        generic map(
-            registerWidth => REG_ADR_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_dAddr_MEM_WB,
-            po_data => s_MEM_EX_rdAdrID_EX
-        );
-
-    MEM_EX_rdAdrEX_MEM : entity work.PipelineRegister1
-        generic map(
-            registerWidth => REG_ADR_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_MEM_EX_rdAdrID_EX,
-            po_data => s_MEM_EX_rdAdrEX_MEM
-        );
-
-    MEM_EX_rdAdrMEM_EX : entity work.PipelineRegister1
-        generic map(
-            registerWidth => REG_ADR_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_MEM_EX_rdAdrEX_MEM,
-            po_data => s_MEM_EX_rdAdrMEM_EX
-        );
-
-    -- WB -> EX
-
-    WB_EX_rdAdrID_EX : entity work.PipelineRegister1
-        generic map(
-            registerWidth => REG_ADR_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_dAddr_MEM_WB,
-            po_data => s_WB_EX_rdAdrID_EX
-        );
-
-    WB_EX_rdAdrEX_MEM : entity work.PipelineRegister1
-        generic map(
-            registerWidth => REG_ADR_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_WB_EX_rdAdrID_EX,
-            po_data => s_WB_EX_rdAdrEX_MEM
-        );
-
-    WB_EX_rdAdrMEM_WB : entity work.PipelineRegister1
-        generic map(
-            registerWidth => REG_ADR_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_WB_EX_rdAdrEX_MEM,
-            po_data => s_WB_EX_rdAdrMEM_WB
-        );
-
-    WB_EX_rdAdrWB_EX : entity work.PipelineRegister1
-        generic map(
-            registerWidth => REG_ADR_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_WB_EX_rdAdrMEM_WB,
-            po_data => s_WB_EX_rdAdrWB_EX
-        );
-
     -- Select Logik für die rs1/rs2 Multiplexer
-    s_forwardingMUX_sel_op1 <= "01" when (s_jetzige_rs1Adr_ID_EX = s_EX_EX_rdAdrEX_EX) else
-                               "10" when (s_jetzige_rs1Adr_ID_EX = s_MEM_EX_rdAdrMEM_EX) else
-                               "11" when (s_jetzige_rs1Adr_ID_EX = s_WB_EX_rdAdrWB_EX) else
+    s_forwardingMUX_sel_op1 <= "01" when (s = s_dAddr_ID_EX) else
+                               "10" when (s = s_dAddr_EX_MEM) else
+                               "11" when (s = s_dAddr_MEM_WB) else
                                "00";
 
-    s_forwardingMUX_sel_op2 <= "01" when (s_jetzige_rs2Adr_ID_EX = s_EX_EX_rdAdrEX_EX) else
-                               "10" when (s_jetzige_rs2Adr_ID_EX = s_MEM_EX_rdAdrMEM_EX) else
-                               "11" when (s_jetzige_rs2Adr_ID_EX = s_WB_EX_rdAdrWB_EX) else
+    s_forwardingMUX_sel_op2 <= "01" when (t = s_dAddr_ID_EX) else
+                               "10" when (t = s_dAddr_EX_MEM) else
+                               "11" when (t = s_dAddr_MEM_WB) else
                                "00";
-
-    -- Gepipelined WB Ausgang
-    mem_wb_data : entity work.PipelineRegister1
-        generic map(registerWidth => WORD_WIDTH)
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst,
-            pi_data1 => s_wbSelect_mux, -- kombiniertes WB-Datenwort
-            po_data => s_mem_wb_data
-        );
-
-    -- PipelineRegister für geladene Daten
-    mem_wb_read_reg : entity work.PipelineRegister1
-        generic map(registerWidth => WORD_WIDTH)
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst,
-            pi_data1 => s_readdata_memory_out,
-            po_data => s_mem_wb_read
-        );
 
     -- MUX für rs1
     rs1_MUX : entity work.gen_mux4to1
@@ -551,8 +404,8 @@ begin
             pi_sel => s_forwardingMUX_sel_op1,
             pi_first => s_op1_registerfile_out,
             pi_second => s_ex_mem_res, -- Ausgang aus der ALU
-            pi_third => s_mem_wb_read, -- Ausgang aus dem Data Memory
-            pi_fourth => s_mem_wb_data, -- Aus dem WB-MUX?????
+            pi_third => s_readdata_memory_out, -- Ausgang aus dem Data Memory
+            pi_fourth => s_wbSelect_mux, -- Aus dem WB-MUX?????
             po_res => s_forwardingMUX_op1
         );
 
@@ -564,8 +417,8 @@ begin
             pi_sel => s_forwardingMUX_sel_op2,
             pi_first => s_op2_registerfile_out,
             pi_second => s_ex_mem_res,
-            pi_third => s_mem_wb_read,
-            pi_fourth => s_mem_wb_data,
+            pi_third => s_readdata_memory_out,
+            pi_fourth => s_wbSelect_mux,
             po_res => s_forwardingMUX_op2
         );
     -- end solution
