@@ -294,7 +294,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst or s_flush,
-            pi_data1 => s_op1_registerfile_out,
+            pi_data1 => s_forwardingMUX_op1,
             po_data => s_idExOp1
         );
 
@@ -305,7 +305,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst or s_flush,
-            pi_data1 => s_op2_registerfile_out,
+            pi_data1 => s_forwardingMUX_op2,
             po_data => s_idExOp2
         );
 
@@ -375,7 +375,7 @@ begin
         )
         port map(
             pi_sel => s_forwardingMUX_sel_op1,
-            pi_first => s_idExOp1,
+            pi_first => s_op1_registerfile_out,
             pi_second => s_ex_mem_res, -- Ausgang aus der ALU
             pi_third => s_readdata_memory_out, -- Ausgang aus dem Data Memory
             pi_fourth => s_mem_wb_res, -- Aus dem WB-MUX?????
@@ -388,7 +388,7 @@ begin
         )
         port map(
             pi_sel => s_forwardingMUX_sel_op2,
-            pi_first => s_idExOp2,
+            pi_first => s_op2_registerfile_out,
             pi_second => s_ex_mem_res,
             pi_third => s_readdata_memory_out,
             pi_fourth => s_mem_wb_res,
