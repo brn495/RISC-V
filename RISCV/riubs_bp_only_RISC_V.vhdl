@@ -155,6 +155,12 @@ architecture structure of riubs_bp_only_RISC_V is
     signal s_WB_EX_rdAdrMEM_WB : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
     signal s_WB_EX_rdAdrWB_EX : std_logic_vector(REG_ADR_WIDTH - 1 downto 0) := (others => '0');
 
+    -- Pipeline von WB_MUX Ausgang für WB -> EX
+    signal s_mem_wb_data : std_logic_vector(WORD_WIDTH - 1 downto 0);
+
+    -- Pipeline von MEM Ausgang für MEM -> EX
+    signal s_mem_wb_read : std_logic_vector(WORD_WIDTH - 1 downto 0);
+
     -- Forwarding MUX für OP1/2 der ALU
     signal s_forwardingMUX_op1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_forwardingMUX_sel_op1 : std_logic_vector(1 downto 0) := "00";
@@ -314,7 +320,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst or s_flush,
-            pi_data1 => s_op1_registerfile_out,
+            pi_data1 => s_forwardingMUX_op1,
             po_data => s_idExOp1
         );
 
@@ -325,7 +331,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst or s_flush,
-            pi_data1 => s_op2_registerfile_out,
+            pi_data1 => s_forwardingMUX_op2,
             po_data => s_idExOp2
         );
 
@@ -515,6 +521,27 @@ begin
                                "10" when (s_jetzige_rs2Adr_ID_EX = s_MEM_EX_rdAdrMEM_EX) else
                                "11" when (s_jetzige_rs2Adr_ID_EX = s_WB_EX_rdAdrWB_EX) else
                                "00";
+
+    -- Gepipelined WB Ausgang
+    mem_wb_data : entity work.PipelineRegister1
+        generic map(registerWidth => WORD_WIDTH)
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_wbSelect_mux, -- kombiniertes WB-Datenwort
+            po_data => s_mem_wb_data
+        );
+
+    -- PipelineRegister für geladene Daten
+    mem_wb_read_reg : entity work.PipelineRegister1
+        generic map(registerWidth => WORD_WIDTH)
+        port map(
+            pi_clk => pi_clk,
+            pi_rst => pi_rst,
+            pi_data1 => s_readdata_memory_out,
+            po_data => s_mem_wb_read
+        );
+
     -- MUX für rs1
     rs1_MUX : entity work.gen_mux4to1
         generic map(
@@ -522,10 +549,10 @@ begin
         )
         port map(
             pi_sel => s_forwardingMUX_sel_op1,
-            pi_first => s_idExOp1,
-            pi_second => s_alu, -- Ausgang aus der ALU
-            pi_third => s_readdata_memory_out, -- Ausgang aus dem Data Memory
-            pi_fourth => s_wbSelect_mux, -- Aus dem WB-MUX?????
+            pi_first => s_op1_registerfile_out,
+            pi_second => s_ex_mem_res, -- Ausgang aus der ALU
+            pi_third => s_mem_wb_read, -- Ausgang aus dem Data Memory
+            pi_fourth => s_mem_wb_data, -- Aus dem WB-MUX?????
             po_res => s_forwardingMUX_op1
         );
 
@@ -535,10 +562,10 @@ begin
         )
         port map(
             pi_sel => s_forwardingMUX_sel_op2,
-            pi_first => s_idExOp2,
-            pi_second => s_alu,
-            pi_third => s_readdata_memory_out,
-            pi_fourth => s_wbSelect_mux,
+            pi_first => s_op2_registerfile_out,
+            pi_second => s_ex_mem_res,
+            pi_third => s_mem_wb_read,
+            pi_fourth => s_mem_wb_data,
             po_res => s_forwardingMUX_op2
         );
     -- end solution
@@ -571,8 +598,8 @@ begin
     ALU : entity work.my_alu
         generic map(WORD_WIDTH, ALU_OPCODE_WIDTH)
         port map(
-            pi_OP1 => s_aSel_mux,
-            pi_OP2 => s_immidatSel_mux,
+            pi_OP1 => s_idExOp1,
+            pi_OP2 => s_idExOp2,
             pi_aluOp => s_controlWordRegisterID_EX.ALU_OP,
             po_aluOut => s_alu,
             po_carryOut => open,
@@ -700,7 +727,7 @@ begin
     -- begin solution:
     data_memory : entity work.data_memory
         generic map(
-            adr_width => adr_width
+            adr_width => ADR_WIDTH
         )
         port map(
             pi_adr => s_ex_mem_res,
