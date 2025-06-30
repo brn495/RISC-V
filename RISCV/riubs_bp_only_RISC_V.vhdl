@@ -203,7 +203,8 @@ begin
     -- begin solution:  
     instruction_cache_inst : entity work.instruction_cache
         generic map(
-            adr_width => WORD_WIDTH
+            adr_width => ADR_WIDTH,
+            mem_size => 2 ** 10
         )
         port map(
             pi_adr => s_pc_register,
@@ -562,7 +563,7 @@ begin
     -- begin solution:
     data_memory : entity work.data_memory
         generic map(
-            adr_width => adr_width
+            adr_width => ADR_WIDTH
         )
         port map(
             pi_adr => s_ex_mem_res,
