@@ -137,11 +137,13 @@ architecture structure of riubs_bp_only_RISC_V is
 
     -- Forwarding MUX für OP1/2 der ALU
     signal s_forwardingMUX_op1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_forwardingMUX_sel_op1 : std_logic_vector(1 downto 0) := "00";
+    signal s_byp_rs1_sel : std_logic_vector(1 downto 0) := "00";
 
     signal s_forwardingMUX_op2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
-    signal s_forwardingMUX_sel_op2 : std_logic_vector(1 downto 0) := "00";
+    signal s_byp_rs2_sel : std_logic_vector(1 downto 0) := "00";
 
+    signal s_mem_bp_rs1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    signal s_mem_bp_rs2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     -- end solution!!
 begin
 
@@ -359,26 +361,33 @@ begin
     -- begin solution:
 
     -- Select Logik für die rs1/rs2 Multiplexer
-    s_forwardingMUX_sel_op1 <= "01" when (s = s_dAddr_ID_EX) else
+    s_byp_rs1_sel <= "01" when (s = s_dAddr_ID_EX) else
                                "10" when (s = s_dAddr_EX_MEM) else
                                "11" when (s = s_dAddr_MEM_WB) else
                                "00";
 
-    s_forwardingMUX_sel_op2 <= "01" when (t = s_dAddr_ID_EX) else
+    s_byp_rs2_sel <= "01" when (t = s_dAddr_ID_EX) else
                                "10" when (t = s_dAddr_EX_MEM) else
                                "11" when (t = s_dAddr_MEM_WB) else
                                "00";
+
+    s_mem_bp_rs1 <= s_readdata_memory_out when (s = s_dAddr_EX_MEM) and (s_controlWordRegisterEX_MEM.MEM_READ = '1') else
+                  s_ex_mem_res;
+
+    s_mem_bp_rs2 <= s_readdata_memory_out when (t = s_dAddr_EX_MEM) and (s_controlWordRegisterEX_MEM.MEM_READ = '1') else
+                  s_ex_mem_res;
+
     -- MUX für rs1
     rs1_MUX : entity work.gen_mux4to1
         generic map(
             dataWidth => WORD_WIDTH
         )
         port map(
-            pi_sel => s_forwardingMUX_sel_op1,
+            pi_sel => s_byp_rs1_sel,
             pi_first => s_op1_registerfile_out,
-            pi_second => s_ex_mem_res, -- Ausgang aus der ALU
-            pi_third => s_readdata_memory_out, -- Ausgang aus dem Data Memory
-            pi_fourth => s_mem_wb_res, -- Aus dem WB-MUX?????
+            pi_second => s_alu, -- Ausgang aus der ALU
+            pi_third => s_mem_bp_rs1, -- Ausgang aus dem Data Memory
+            pi_fourth => s_wbSelect_mux, -- Aus dem WB-MUX?????
             po_res => s_forwardingMUX_op1
         );
 
@@ -387,11 +396,11 @@ begin
             dataWidth => WORD_WIDTH
         )
         port map(
-            pi_sel => s_forwardingMUX_sel_op2,
+            pi_sel => s_byp_rs2_sel,
             pi_first => s_op2_registerfile_out,
-            pi_second => s_ex_mem_res,
-            pi_third => s_readdata_memory_out,
-            pi_fourth => s_mem_wb_res,
+            pi_second => s_alu,
+            pi_third => s_mem_bp_rs2,
+            pi_fourth => s_wbSelect_mux,
             po_res => s_forwardingMUX_op2
         );
     -- end solution
@@ -406,7 +415,7 @@ begin
         )
         port map(
             pi_sel => s_controlWordRegisterID_EX.I_IMM_SEL,
-            pi_first => s_forwardingMUX_op2,
+            pi_first => s_idExOp2,
             pi_second => s_id_ex_Immediat,
             po_res => s_immidatSel_mux
         );
@@ -417,7 +426,7 @@ begin
         )
         port map(
             pi_sel => s_controlWordRegisterID_EX.A_SEL,
-            pi_first => s_forwardingMUX_op1,
+            pi_first => s_idExOp1,
             pi_second => s_pc_to_pcPlus4_registerID_EX,
             po_res => s_aSel_mux
         );
