@@ -18,7 +18,7 @@ use ieee.numeric_std.all;
 use work.constant_package.all;
 use work.types.all;
 
-entity riubs_bp_only_RISC_V is
+entity riubs_bp_lu_only_RISC_V is
     port (
         pi_rst : in std_logic;
         pi_clk : in std_logic;
@@ -26,9 +26,9 @@ entity riubs_bp_only_RISC_V is
         po_registersOut : out registerMemory := (others => (others => '0'));
         po_debugdatamemory : out memory := (others => (others => '0'))
     );
-end entity riubs_bp_only_RISC_V;
+end entity riubs_bp_lu_only_RISC_V;
 
-architecture structure of riubs_bp_only_RISC_V is
+architecture structure of riubs_bp_lu_only_RISC_V is
 
     constant PERIOD : time := 10 ns;
     constant ADD_FOUR_TO_ADDRESS : std_logic_vector(WORD_WIDTH - 1 downto 0) := std_logic_vector(to_signed((4), WORD_WIDTH));
@@ -144,6 +144,9 @@ architecture structure of riubs_bp_only_RISC_V is
 
     signal s_mem_bp_rs1 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
     signal s_mem_bp_rs2 : std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0');
+    
+    -- Stalling
+    signal s_stall : std_logic := '0';
     -- end solution!!
 begin
 
@@ -170,6 +173,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
+            pi_enable => not s_stall,
             pi_data1 => s_pcSel_mux,
             po_data => s_pc_register
         );
@@ -228,6 +232,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst or s_flush,
+            pi_enable => not s_stall,
             pi_data1 => s_instruction_cache,
             po_data => s_instructionCacheRegisterIF_ID
         );
@@ -296,7 +301,8 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
+            pi_rst => pi_rst,
+            pi_flush => s_flush or s_stall,
             pi_data1 => s_forwardingMUX_op1,
             po_data => s_idExOp1
         );
@@ -307,14 +313,15 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
+            pi_rst => pi_rst,
+            pi_flush => s_flush or s_stall,
             pi_data1 => s_forwardingMUX_op2,
             po_data => s_idExOp2
         );
 
     ControlWordRegister1 : entity work.ControlWordRegister
         port map(
-            pi_rst => pi_rst or s_flush,
+            pi_rst => pi_rst,
             pi_clk => pi_clk,
             pi_controlWord => s_decoder,
             po_controlWord => s_controlWordRegisterID_EX
@@ -326,7 +333,8 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
+            pi_rst => pi_rst,
+            pi_flush => s_flush or s_stall,
             pi_data1 => d,
             po_data => s_dAddr_ID_EX
         );
@@ -337,7 +345,8 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
+            pi_rst => pi_rst,
+            pi_flush => s_flush or s_stall,
             pi_data1 => s_signextension_out,
             po_data => s_id_ex_Immediat
         );
@@ -348,12 +357,19 @@ begin
         )
         port map(
             pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
+            pi_rst => pi_rst,
+            pi_flush => s_flush or s_stall,
             pi_data1 => s_pc_to_pcPlus4_registerIF_ID,
             po_data => s_pc_to_pcPlus4_registerID_EX
         );
 
     s_flush <= s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL;
+    s_stall <= '1' when
+    ( s_controlWordRegisterID_EX.MEM_READ = '1') and
+    (( s_dAddr_ID_EX /= "00000" ) and
+    (( s_dAddr_ID_EX = s ) or
+    ( s_dAddr_ID_EX = t ) ) )
+    else '0';
     -- end solution!!
 
     ---********************************************************************
@@ -362,12 +378,12 @@ begin
     -- begin solution:
 
     -- Select Logik für die rs1/rs2 Multiplexer
-    s_byp_rs1_sel <= "01" when (s = s_dAddr_ID_EX) else
+    s_byp_rs1_sel <= "01" when (s = s_dAddr_ID_EX) and (s_stall = '0') else
                                "10" when (s = s_dAddr_EX_MEM) else
                                "11" when (s = s_dAddr_MEM_WB) else
                                "00";
 
-    s_byp_rs2_sel <= "01" when (t = s_dAddr_ID_EX) else
+    s_byp_rs2_sel <= "01" when (t = s_dAddr_ID_EX) and (s_stall = '0') else
                                "10" when (t = s_dAddr_EX_MEM) else
                                "11" when (t = s_dAddr_MEM_WB) else
                                "00";
@@ -477,6 +493,7 @@ begin
         port map(
             pi_rst => pi_rst,
             pi_clk => pi_clk,
+            pi_flush => s_flush,
             pi_controlWord => s_controlWordRegisterID_EX,
             po_controlWord => s_controlWordRegisterEX_MEM
         );
@@ -488,6 +505,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
+            pi_flush => s_flush,
             pi_data1 => s_dAddr_ID_EX,
             po_data => s_dAddr_EX_MEM
         );
@@ -499,6 +517,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
+            pi_flush => s_flush,
             pi_data1 => s_alu,
             po_data => s_ex_mem_res
         );
@@ -510,6 +529,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
+            pi_flush => s_flush,
             pi_data1 => s_id_ex_Immediat,
             po_data => s_ex_mem_Immediat
         );
@@ -521,6 +541,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
+            pi_flush => s_flush,
             pi_data1 => s_sum_pc_plus4,
             po_data => s_pc_plus4_EX_MEM
         );
@@ -532,6 +553,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
+            pi_flush => s_flush,
             pi_data1 => s_sum_branch_adder,
             po_data => s_branchAdder_EX_MEM
         );
@@ -543,6 +565,7 @@ begin
         port map(
             pi_clk => pi_clk,
             pi_rst => pi_rst,
+            pi_flush => s_flush,
             pi_data1 => s_idExOp2,
             po_data => s_mux_immSel_ex_mem
         );

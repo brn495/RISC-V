@@ -22,6 +22,8 @@ entity PipelineRegister1 is
     port (
         pi_clk : in std_logic := '0'; -- Clock
         pi_rst : in std_logic := '0'; -- Reset
+        pi_enable : in std_logic := '1';
+        pi_flush : in std_logic := '0';
         pi_data1 : in std_logic_vector(registerWidth - 1 downto 0) := (others => '0'); -- Eingang
         po_data : out std_logic_vector(registerWidth - 1 downto 0) := (others => '0') -- Ausgang
     );
@@ -34,7 +36,11 @@ begin
         if pi_rst = '1' then
             po_data <= (others => '0');
         elsif rising_edge(pi_clk) then
-            po_data <= pi_data1;
+            if pi_flush then
+                po_data <= (others => '0');
+            elsif pi_enable then
+                po_data <= pi_data1;
+            end if;
         end if;
     end process;
 end architecture behaviour;

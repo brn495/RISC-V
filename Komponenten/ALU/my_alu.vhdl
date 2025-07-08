@@ -48,10 +48,10 @@ begin
     -- begin solution:
     s_shiftType <= pi_aluOp(G_OP_WIDTH - 1);
     s_cIn <= pi_aluOp(G_OP_WIDTH - 1);
-    s_slt <= std_logic_vector(to_unsigned(1, G_DATA_WIDTH)) when to_integer(signed(pi_op1)) < to_integer(signed(pi_op2))
+    s_slt <= std_logic_vector(to_unsigned(1, G_DATA_WIDTH)) when signed(pi_op1) < signed(pi_op2)
              else
              (others => '0');
-    s_sltu <= std_logic_vector(to_unsigned(1, G_DATA_WIDTH)) when to_integer(unsigned(pi_op1)) < to_integer(unsigned(pi_op2))
+    s_sltu <= std_logic_vector(to_unsigned(1, G_DATA_WIDTH)) when unsigned(pi_op1) < unsigned(pi_op2)
               else
               (others => '0');
     with pi_aluOp select

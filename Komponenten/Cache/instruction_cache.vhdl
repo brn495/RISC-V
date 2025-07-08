@@ -12,6 +12,7 @@
 --               to allow writing data in testbenches
 -- ========================================================================
 
+-- exercise 4 revised: synchronous instruction cache with separate register and read
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -20,36 +21,32 @@ use work.types.all;
 
 entity instruction_cache is
     generic (
-        adr_width : integer := ADR_WIDTH; -- Address Bus width of instruction memory (in RISCVI: 32)
-        mem_size : integer := 2 ** 10 -- Size of instruction cache
+        adr_width : integer := ADR_WIDTH; -- Address bus width
+        mem_size  : integer := 2**10      -- Number of entries in cache
     );
     port (
-        pi_adr : in std_logic_vector(adr_width - 1 downto 0) := (others => '0'); -- Adress of the instruction to select
-        pi_clk : in std_logic := '0';
-        pi_rst : in std_logic := '0';
-        pi_instructionCache : in memory := (others => (others => '0'));
-        po_instruction : out std_logic_vector(WORD_WIDTH - 1 downto 0) := (others => '0') -- Selected instruction
+        pi_adr             : in  std_logic_vector(adr_width-1 downto 0); -- instruction address
+        pi_clk             : in  std_logic;
+        pi_rst             : in  std_logic;
+        pi_instructionCache: in  memory;  -- initialization/debug input
+        po_instruction     : out std_logic_vector(WORD_WIDTH-1 downto 0) -- fetched instruction
     );
 end entity instruction_cache;
 
-architecture behavior of instruction_cache is
-
+architecture sync of instruction_cache is
+    -- register array storing instructions
     signal instructions : memory := (others => (others => '0'));
-
 begin
-
-    process (pi_clk, pi_rst, pi_instructionCache) is
+    -- load and store instructions in register on clock
+    process(pi_clk, pi_rst) is
     begin
-
         if pi_rst = '1' then
-            instructions <= (others => (others => '0'));
+            instructions <= pi_instructionCache;  -- load all on reset
         elsif rising_edge(pi_clk) then
-
-            po_instruction <= instructions(to_integer(unsigned(pi_adr(adr_width - 1 downto 2))));
-        else
-            instructions <= pi_instructionCache;
+            instructions <= pi_instructionCache;  -- update for debug or testbench
         end if;
-
     end process;
 
-end architecture behavior;
+    -- asynchronous read of instruction
+    po_instruction <= instructions(to_integer(unsigned(pi_adr(adr_width-1 downto 2))));
+end architecture sync;
