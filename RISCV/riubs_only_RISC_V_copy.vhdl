@@ -158,6 +158,10 @@ architecture structure of riubs_only_RISC_V is
     --Signal weitergelieteter Wert für rs2 (MEM), gibt den richtigen Wert aus MEM zurück 
     signal s_byp_rs2_MEM : std_logic_vector (WORD_WIDTH -1 downto 0);
 
+    -- Signal für Writeback 
+    signal s_rs1_ID_EX: std_logic_vector(REG_ADR_WIDTH -1 downto 0) := (others => '0');
+    signal s_rs2_ID_EX : std_logic_vector(REG_ADR_WIDTH -1 downto 0) := (others => '0');
+
      -- end solution!!
 
     ---********************************************************************
@@ -304,17 +308,18 @@ architecture structure of riubs_only_RISC_V is
                           x"00000000" when others;
     -- end solution!!
 
-    ---********************************************************************
-    ---* Pipeline-Register (ID -> EX) 
-    ---********************************************************************
-    -- begin solution: 
+---********************************************************************
+---* Pipeline-Register (ID -> EX) 
+---********************************************************************
+-- begin solution: 
+
 -- Forwarding-MUX für Operand 1
 aluOp1_mux : entity work.gen_mux4to1
     generic map (dataWidth => WORD_WIDTH)
     port map (
         pi_sel    => s_byp_rs1_sel,
         pi_first  => s_op1_registerfile_out,
-        pi_second => s_alu,
+        pi_second => s_idExOp1,
         pi_third  => s_byp_rs1_MEM,
         pi_fourth => s_wbSelect_mux,
         po_res    => s_idExOp1
@@ -326,56 +331,82 @@ aluOp2_mux : entity work.gen_mux4to1
     port map (
         pi_sel    => s_byp_rs2_sel,
         pi_first  => s_op2_registerfile_out,
-        pi_second => s_alu,
+        pi_second => s_idExOp2,
         pi_third  => s_byp_rs2_MEM,
         pi_fourth => s_wbSelect_mux,
         po_res    => s_idExOp2
     );
 
+-- Pipeline-Register für Steuerwort
+ControlWordRegister1 : entity work.ControlWordRegister
+    port map(
+        pi_rst => pi_rst or s_flush,
+        pi_clk => pi_clk,
+        pi_controlWord => s_decoder,
+        po_controlWord => s_controlWordRegisterID_EX
+    );
 
-    ControlWordRegister1 : entity work.ControlWordRegister
-        port map(
-            pi_rst => pi_rst or s_flush,
-            pi_clk => pi_clk,
-            pi_controlWord => s_decoder,
-            po_controlWord => s_controlWordRegisterID_EX
-        );
+-- Zielregisteradresse (Writeback-Ziel)
+gen_reg1_dAddr : entity work.PipelineRegister1
+    generic map(
+        registerWidth => REG_ADR_WIDTH
+    )
+    port map(
+        pi_clk => pi_clk,
+        pi_rst => pi_rst or s_flush,
+        pi_data1 => d,
+        po_data => s_dAddr_ID_EX
+    );
 
-    gen_reg1_dAddr : entity work.PipelineRegister1
-        generic map(
-            registerWidth => REG_ADR_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => d,
-            po_data => s_dAddr_ID_EX
-        );
+-- NEU: Quellregisteradresse 1 (rs1)
+gen_reg1_sAddr : entity work.PipelineRegister1
+    generic map(registerWidth => REG_ADR_WIDTH)
+    port map(
+        pi_clk => pi_clk,
+        pi_rst => pi_rst or s_flush,
+        pi_data1 => s,
+        po_data => s_rs1_ID_EX
+    );
 
-    id_ex_se : entity work.PipelineRegister1
-        generic map(
-            registerWidth => WORD_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_signextension_out,
-            po_data => s_id_ex_Immediat
-        );
+-- NEU: Quellregisteradresse 2 (rs2)
+gen_reg1_tAddr : entity work.PipelineRegister1
+    generic map(registerWidth => REG_ADR_WIDTH)
+    port map(
+        pi_clk => pi_clk,
+        pi_rst => pi_rst or s_flush,
+        pi_data1 => t,
+        po_data => s_rs2_ID_EX
+    );
 
-    PC_to_PC_plus4_ID_EX : entity work.PipelineRegister1
-        generic map(
-            registerWidth => WORD_WIDTH
-        )
-        port map(
-            pi_clk => pi_clk,
-            pi_rst => pi_rst or s_flush,
-            pi_data1 => s_pc_to_pcPlus4_registerIF_ID,
-            po_data => s_pc_to_pcPlus4_registerID_EX
-        );
+-- Immidiat
+id_ex_se : entity work.PipelineRegister1
+    generic map(
+        registerWidth => WORD_WIDTH
+    )
+    port map(
+        pi_clk => pi_clk,
+        pi_rst => pi_rst or s_flush,
+        pi_data1 => s_signextension_out,
+        po_data => s_id_ex_Immediat
+    );
 
-    s_flush <= s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL;
-    -- end solution!!
+-- PC von IF -> EX (für AUIPC/JALR)
+PC_to_PC_plus4_ID_EX : entity work.PipelineRegister1
+    generic map(
+        registerWidth => WORD_WIDTH
+    )
+    port map(
+        pi_clk => pi_clk,
+        pi_rst => pi_rst or s_flush,
+        pi_data1 => s_pc_to_pcPlus4_registerIF_ID,
+        po_data => s_pc_to_pcPlus4_registerID_EX
+    );
+
+-- Flush-Signal, gesteuert aus EX_MEM-Phase
+s_flush <= s_select_for_branchEX_MEM or s_controlWordRegisterEX_MEM.PC_SEL;
+
+-- end solution!!
+
 
     ---********************************************************************
     ---* execute phase
@@ -641,26 +672,14 @@ s_byp_rs2_MEM <= s_readdata_memory_out when (s_rs2AdrID = s_dAddr_EX_MEM) and
             pi_clk => not pi_clk,
             pi_rst => pi_rst,
             pi_writeEnable => s_controlWordRegisterMEM_WB.REG_WRITE,
-            pi_readRegAddr1 => s,
-            pi_readRegAddr2 => t,
+            pi_readRegAddr1 => s_rs1_ID_EX,
+            pi_readRegAddr2 => s_rs2_ID_EX,
             pi_writeRegAddr => s_dAddr_MEM_WB,
             pi_writeRegData => s_wbSelect_mux,
             po_readRegData1 => s_op1_registerfile_out,
             po_readRegData2 => s_op2_registerfile_out,
             po_registerOut => po_registersOut
         );
-
-    process (pi_clk)
-     begin
-      if rising_edge(pi_clk) then
-        if s_controlWordRegisterMEM_WB.REG_WRITE = '1' and s_dAddr_MEM_WB /= "00000" then
-          s_registerfile(to_integer(unsigned(s_dAddr_MEM_WB))) <= s_wbSelect_mux;
-        end if;
-      end if;
-    end process;
-
-  -- Ausgabe des Registerfiles an den Testbench-Port
-  po_registersOut <= s_registerfile;
 
     -- end solution!!
 end architecture;
